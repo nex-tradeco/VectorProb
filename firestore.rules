@@ -1,0 +1,190 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(uid) { return isSignedIn() && request.auth.uid == uid; }
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // A position may only be settled by its owner: open -> won/lost, touching only
+    // the settlement fields, and not before its own close date (resolveAt).
+    function isSettlement() {
+      return resource.data.status == 'open'
+        && request.resource.data.status in ['won', 'lost']
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['status', 'payoutAmount', 'feeAmount', 'settledAt'])
+        && (resource.data.get('resolveAt', null) == null
+            || request.time >= resource.data.resolveAt);
+    }
+
+    // ── Admins ───────────────────────────────────────────────────────────────
+    match /admins/{uid} {
+      allow read:  if isSignedIn();
+      allow write: if false;
+    }
+
+    // ── Users ─────────────────────────────────────────────────────────────────
+    // CRITICAL: create must be allowed for any signed-in user writing their OWN
+    // doc. Firebase Auth creates the user first, then the client writes the doc.
+    // The user IS signed in at that point (auth.currentUser exists), so isOwner
+    // works correctly. No cross-collection queries are needed because account IDs
+    // are generated locally.
+    match /users/{uid} {
+      allow read:   if isOwner(uid) || isAdmin();
+      allow create: if isSignedIn() && isOwner(uid);
+      allow update: if isOwner(uid) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── Markets ───────────────────────────────────────────────────────────────
+    match /markets/{marketId} {
+      allow read:   if true;
+      allow create: if isAdmin();
+      // Signed-in users may only bump the volume counter when they bet.
+      allow update: if isAdmin() ||
+                       (isSignedIn() &&
+                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['totalVolume']));
+      allow delete: if isAdmin();
+    }
+
+    // ── Market live state ─────────────────────────────────────────────────────
+    match /marketLive/{marketId} {
+      allow read:   if true;
+      allow create: if isAdmin() ||
+                       (isSignedIn() &&
+                        request.resource.data.keys().hasOnly(['totalVolume', 'lastUpdated']));
+      allow update: if isAdmin() ||
+                       (isSignedIn() &&
+                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['totalVolume', 'lastUpdated']));
+      allow delete: if isAdmin();
+    }
+
+    // ── Trading — live price caches (Forex/Commodities) ─────────────────────
+    // Single docs: forexPrices/latest, commodityPrices/latest.
+    // One client fetches from the external API and writes; everyone else reads.
+    // Same shared-cache pattern as marketLive above.
+    match /forexPrices/{doc} {
+      allow read:  if true;
+      allow write: if isSignedIn();
+    }
+    match /commodityPrices/{doc} {
+      allow read:  if true;
+      allow write: if isSignedIn();
+    }
+
+    // ── Market secrets ────────────────────────────────────────────────────────
+    match /marketSecrets/{marketId} {
+      allow read:  if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // ── Positions ─────────────────────────────────────────────────────────────
+    match /positions/{posId} {
+      allow read:   if isSignedIn() &&
+                       (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.status == 'open';
+      allow update: if isAdmin() ||
+                       (isSignedIn() && resource.data.userId == request.auth.uid && isSettlement());
+      allow delete: if isAdmin();
+    }
+
+    // ── Copy positions ────────────────────────────────────────────────────────
+    match /copyPositions/{posId} {
+      allow read:   if isSignedIn() &&
+                       (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.status == 'open';
+      allow update: if isAdmin() ||
+                       (isSignedIn() && resource.data.userId == request.auth.uid && isSettlement());
+      allow delete: if isAdmin();
+    }
+
+    // ── Trades (Forex/Commodities/Crypto) ───────────────────────────────────
+    // Same ownership pattern as positions — draws from and returns to the
+    // single shared users/{uid}.balance field, not a separate trading balance.
+    match /trades/{tradeId} {
+      allow read:   if isSignedIn() &&
+                       (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() &&
+                       request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() &&
+                       (resource.data.userId == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // ── Copy betting state ────────────────────────────────────────────────────
+    match /copyBetting/{uid} {
+      allow read:   if isOwner(uid) || isAdmin();
+      allow create: if isOwner(uid);
+      allow update: if isOwner(uid) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── Copy trading state (Forex/Commodity expert traders) ─────────────────
+    // Same shape as copyBetting above — a single doc per user, which is what
+    // structurally enforces "only one active follow across both sections":
+    // the unified copytrade.html checks both docs before allowing a new follow.
+    match /copyTrading/{uid} {
+      allow read:   if isOwner(uid) || isAdmin();
+      allow create: if isOwner(uid);
+      allow update: if isOwner(uid) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── Transactions ──────────────────────────────────────────────────────────
+    match /transactions/{txId} {
+      allow read:   if isSignedIn() &&
+                       (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() &&
+                       (request.resource.data.userId == request.auth.uid || isAdmin());
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── Wallets ───────────────────────────────────────────────────────────────
+    // Single doc: wallets/addresses — public read so deposit page can show addresses
+    match /wallets/{doc} {
+      allow read:  if true;
+      allow write: if isAdmin();
+    }
+
+    // ── Settings ─────────────────────────────────────────────────────────────
+    match /settings/{doc} {
+      allow read:  if true;
+      allow write: if isAdmin();
+    }
+
+    // ── Support chat ──────────────────────────────────────────────────────────
+    // chatId is always the participant's auth uid — real for signed-in users,
+    // anonymous for guests (via signInAnonymously). This gives every user or
+    // guest exactly one conversation thread, readable/writable by themselves
+    // or an admin, with no cross-user access possible.
+    match /chats/{chatId} {
+      allow read:   if isSignedIn() && (request.auth.uid == chatId || isAdmin());
+      allow create: if isSignedIn() && request.auth.uid == chatId;
+      allow update: if isSignedIn() && (request.auth.uid == chatId || isAdmin());
+      allow delete: if isAdmin();
+
+      match /messages/{messageId} {
+        allow read:   if isSignedIn() && (request.auth.uid == chatId || isAdmin());
+        allow create: if isSignedIn() && (request.auth.uid == chatId || isAdmin());
+        allow update: if isAdmin();
+        allow delete: if isAdmin();
+      }
+    }
+
+    // ── KYC ──────────────────────────────────────────────────────────────────
+    match /kyc/{uid} {
+      allow read:   if isOwner(uid) || isAdmin();
+      allow create: if isSignedIn() && isOwner(uid);
+      allow update: if isOwner(uid) || isAdmin();
+      allow delete: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>VectorProb — Admin</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .admin-wrap { max-width:var(--container,1180px); margin:0 auto; padding:0 16px; }
+    .admin-topbar {
+      background:var(--surface); border-bottom:1px solid var(--border);
+      position:sticky; top:0; z-index:40;
+    }
+    .admin-topbar-inner {
+      display:flex; align-items:center; justify-content:space-between;
+      height:58px; max-width:var(--container,1180px); margin:0 auto; padding:0 16px;
+    }
+    .admin-brand { display:flex; align-items:center; gap:9px; }
+    .admin-brand svg { width:26px; height:26px; color:var(--accent); }
+    .admin-badge {
+      padding:3px 10px; background:rgba(124,92,255,.15); color:var(--accent);
+      border-radius:99px; font-size:11px; font-weight:700;
+      border:1px solid rgba(124,92,255,.3);
+    }
+    .admin-user-info { font-size:13px; color:var(--text-dim); }
+    .admin-signout {
+      padding:6px 16px; border-radius:99px; border:1px solid var(--border);
+      background:none; color:var(--text-dim); font-size:13px; font-weight:600;
+      cursor:pointer; font-family:inherit; transition:border-color .15s, color .15s;
+    }
+    .admin-signout:hover { border-color:var(--accent); color:var(--accent); }
+    .admin-tabs {
+      display:flex; overflow-x:auto; scrollbar-width:none; border-bottom:1px solid var(--border);
+      background:var(--surface); gap:0; padding:0 16px;
+    }
+    .admin-tabs::-webkit-scrollbar { display:none; }
+    .admin-tab {
+      padding:14px 20px; font-size:14px; font-weight:600; color:var(--text-dim);
+      border-bottom:2px solid transparent; white-space:nowrap; cursor:pointer;
+      background:none; border-top:none; border-left:none; border-right:none;
+      font-family:inherit; transition:color .15s;
+    }
+    .admin-tab.active { color:var(--text); border-bottom-color:var(--accent); }
+    .admin-panel { display:none; padding:24px 0; }
+    .admin-panel.active { display:block; }
+    .stat-row {
+      display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:24px;
+    }
+    @media(min-width:640px){ .stat-row { grid-template-columns:repeat(4,1fr); } }
+    .stat-box {
+      background:var(--surface); border:1px solid var(--border); border-radius:16px;
+      padding:16px;
+    }
+    .stat-box .sv { font-family:var(--font-display,inherit); font-size:26px; font-weight:800; color:var(--text); }
+    .stat-box .sl { font-size:12px; color:var(--text-dim); margin-top:4px; }
+    .admin-table-wrap { overflow-x:auto; }
+    table.admin-tbl { width:100%; border-collapse:collapse; font-size:13.5px; }
+    table.admin-tbl th {
+      text-align:left; padding:10px 12px; font-size:12px; font-weight:700;
+      color:var(--text-dim); border-bottom:1px solid var(--border); white-space:nowrap;
+    }
+    table.admin-tbl td {
+      padding:11px 12px; border-bottom:1px solid var(--border); color:var(--text-dim);
+      vertical-align:middle;
+    }
+    table.admin-tbl tr:last-child td { border-bottom:none; }
+    table.admin-tbl td strong { color:var(--text); }
+    .s-badge {
+      display:inline-flex; padding:3px 9px; border-radius:99px;
+      font-size:11.5px; font-weight:700;
+    }
+    .s-badge.active   { background:rgba(31,209,124,.13); color:#1fd17c; }
+    .s-badge.pending  { background:rgba(242,179,65,.13);  color:#f2b341; }
+    .s-badge.approved { background:rgba(31,209,124,.13);  color:#1fd17c; }
+    .s-badge.rejected { background:rgba(242,73,107,.13);  color:#f2496b; }
+    .s-badge.resolved { background:rgba(124,92,255,.13);  color:var(--accent); }
+    .a-btn {
+      padding:5px 12px; border-radius:99px; font-size:12px; font-weight:700;
+      border:1px solid var(--border); background:none; color:var(--text-dim);
+      cursor:pointer; font-family:inherit; transition:all .15s;
+    }
+    .a-btn:hover { border-color:var(--accent); color:var(--accent); }
+    .a-btn.danger:hover { border-color:#f2496b; color:#f2496b; }
+    .modal-back {
+      position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:200;
+      display:none; align-items:center; justify-content:center; padding:16px;
+    }
+    .modal-back.open { display:flex; }
+    .modal-box {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:20px; padding:28px 24px; width:100%; max-width:500px;
+      max-height:90vh; overflow-y:auto;
+    }
+    .modal-box h3 { font-family:var(--font-display,inherit); font-size:20px; font-weight:800; margin-bottom:18px; color:var(--text); }
+    .form-group { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+    .form-label { font-size:13px; font-weight:600; color:var(--text-dim); }
+    .form-input {
+      height:44px; padding:0 14px; border-radius:12px;
+      background:var(--bg); border:1.5px solid var(--border);
+      color:var(--text); font-size:15px; font-family:inherit; outline:none;
+      transition:border-color .15s;
+    }
+    .form-input:focus { border-color:var(--accent); }
+    select.form-input { cursor:pointer; }
+    .modal-foot { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
+    .spinner-overlay {
+      position:fixed; inset:0; background:var(--bg); z-index:999;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .spinner {
+      width:34px; height:34px; border-radius:50%;
+      border:3px solid var(--border); border-top-color:var(--accent);
+      animation:spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .toast {
+      position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(16px);
+      background:var(--surface); border:1px solid var(--border); border-radius:99px;
+      padding:10px 20px; font-size:14px; font-weight:600; color:var(--text);
+      z-index:500; opacity:0; transition:opacity .25s, transform .25s; white-space:nowrap;
+    }
+    .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+    .toast.ok  { border-color:#1fd17c; color:#1fd17c; }
+    .toast.err { border-color:#f2496b; color:#f2496b; }
+  </style>
+</head>
+<body>
+
+<div class="spinner-overlay" id="loader"><div class="spinner"></div></div>
+
+<div id="adminShell" style="display:none;">
+  <div class="admin-topbar">
+    <div class="admin-topbar-inner">
+      <div class="admin-brand">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor">
+          <path d="M5 8l11 17L27 8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 7.5h6.5V14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="16" cy="25" r="1.9" fill="currentColor" stroke="none"/>
+        </svg>
+        <span style="font-family:var(--font-display,inherit);font-weight:800;font-size:17px;color:var(--text);">Vector<span style="color:var(--accent);">Prob</span></span>
+        <span class="admin-badge">Admin</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span class="admin-user-info" id="adminEmailLabel"></span>
+        <button class="admin-signout" onclick="doSignOut()">Sign Out</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-tabs" id="adminTabs">
+    <button class="admin-tab active" data-tab="overview"    onclick="switchTab(this)">Overview</button>
+    <button class="admin-tab"        data-tab="markets"     onclick="switchTab(this)">Markets</button>
+    <button class="admin-tab"        data-tab="users"       onclick="switchTab(this)">Users</button>
+    <button class="admin-tab"        data-tab="deposits"    onclick="switchTab(this)">Deposits</button>
+    <button class="admin-tab"        data-tab="withdrawals" onclick="switchTab(this)">Withdrawals</button>
+    <button class="admin-tab"        data-tab="wallets"     onclick="switchTab(this)">Wallets</button>
+    <button class="admin-tab"        data-tab="kyc"         onclick="switchTab(this)">KYC</button>
+    <button class="admin-tab"        data-tab="copyconfig"  onclick="switchTab(this)">Copy Trading Config</button>
+    <button class="admin-tab"        data-tab="support"     onclick="switchTab(this)">Support <span id="supportBadge" style="display:none;min-width:18px;height:18px;padding:0 5px;margin-left:6px;border-radius:99px;background:#f2496b;color:#fff;font-size:11px;font-weight:800;align-items:center;justify-content:center;box-sizing:border-box;vertical-align:middle;">0</span></button>
+  </div>
+
+  <div class="admin-wrap">
+
+    <!-- OVERVIEW -->
+    <div class="admin-panel active" id="panel-overview">
+      <div class="stat-row">
+        <div class="stat-box"><div class="sv" id="ovUsers">—</div><div class="sl">Total Users</div></div>
+        <div class="stat-box"><div class="sv" id="ovMarkets">—</div><div class="sl">Active Markets</div></div>
+        <div class="stat-box"><div class="sv" id="ovDep">—</div><div class="sl">Pending Deposits</div></div>
+        <div class="stat-box"><div class="sv" id="ovWd">—</div><div class="sl">Pending Withdrawals</div></div>
+      </div>
+      <h3 style="font-size:14px;font-weight:700;color:var(--text-dim);margin-bottom:12px;">Recent Signups</h3>
+      <div class="admin-table-wrap">
+        <table class="admin-tbl"><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Account ID</th><th>Balance</th><th>Joined</th></tr></thead>
+        <tbody id="ovUsersBody"></tbody></table>
+      </div>
+    </div>
+
+    <!-- MARKETS -->
+    <div class="admin-panel" id="panel-markets">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+        <p style="font-size:13px;color:var(--text-dim);margin:0;">Create prediction markets — they settle automatically per user. Resolution bias is hidden from users.</p>
+        <button class="a-btn" style="background:var(--accent);color:#fff;border-color:var(--accent);" onclick="openCreateMarket()">+ Create Market</button>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="admin-tbl">
+          <thead><tr><th>Question</th><th>Category</th><th>Prob.</th><th>Volume</th><th>Ends</th><th>Status</th></tr></thead>
+          <tbody id="marketsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="admin-panel" id="panel-users">
+      <div class="admin-table-wrap">
+        <table class="admin-tbl">
+          <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Account ID</th><th>Balance</th><th>Joined</th><th>Action</th></tr></thead>
+          <tbody id="usersBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- DEPOSITS -->
+    <div class="admin-panel" id="panel-deposits">
+      <div class="admin-table-wrap">
+        <table class="admin-tbl">
+          <thead><tr><th>User</th><th>Amount</th><th>Coin</th><th>TXID</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+          <tbody id="depsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- WITHDRAWALS -->
+    <div class="admin-panel" id="panel-withdrawals">
+      <div class="admin-table-wrap">
+        <table class="admin-tbl">
+          <thead><tr><th>User</th><th>Amount</th><th>Coin</th><th>Address</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+          <tbody id="wdsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- WALLETS -->
+    <div class="admin-panel" id="panel-wallets">
+      <p style="font-size:13.5px;color:var(--text-dim);background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:20px;line-height:1.6;">
+        Set the wallet addresses for each cryptocurrency. These addresses will be shown to users on the deposit page.
+      </p>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;">
+        <h3 style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:18px;">Crypto Wallet Addresses</h3>
+        <div style="display:flex;flex-direction:column;gap:16px;" id="walletFields">
+          <!-- fields injected by JS -->
+        </div>
+        <div id="walletSaveMsg" style="display:none;font-size:13px;margin-top:12px;padding:10px 14px;border-radius:10px;"></div>
+        <button onclick="saveAllWallets()" style="margin-top:20px;width:100%;height:46px;border-radius:99px;background:var(--accent,#7c5cff);color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:inherit;">Save All Wallet Addresses</button>
+      </div>
+    </div>
+
+    <!-- KYC -->
+    <div class="admin-panel" id="panel-kyc">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+        <div style="display:flex;gap:8px;">
+          <button onclick="filterKyc('all')"     id="kycf-all"      style="padding:6px 14px;border-radius:99px;border:1px solid var(--border);background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">All</button>
+          <button onclick="filterKyc('pending')"  id="kycf-pending"  style="padding:6px 14px;border-radius:99px;border:1px solid var(--border);background:none;color:var(--text-dim);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Pending</button>
+          <button onclick="filterKyc('verified')" id="kycf-verified" style="padding:6px 14px;border-radius:99px;border:1px solid var(--border);background:none;color:var(--text-dim);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Verified</button>
+          <button onclick="filterKyc('rejected')" id="kycf-rejected" style="padding:6px 14px;border-radius:99px;border:1px solid var(--border);background:none;color:var(--text-dim);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Rejected</button>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-dim);cursor:pointer;">
+          <span>Auto-verify</span>
+          <input type="checkbox" id="autoVerifyToggle" onchange="toggleAutoVerify(this.checked)" style="width:16px;height:16px;cursor:pointer;">
+        </label>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="admin-tbl">
+          <thead><tr><th>User</th><th>ID Type</th><th>Submitted</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="kycBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- COPY TRADING CONFIG (per-user) -->
+    <div class="admin-panel" id="panel-copyconfig">
+      <p style="font-size:13.5px;color:var(--text-dim);background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:20px;line-height:1.6;">
+        Per-user Copy Trading settings. Each row saves independently and takes effect on that user's next trade. Separate from Copy Betting config.
+      </p>
+      <div class="admin-table-wrap">
+        <table class="admin-tbl">
+          <thead><tr><th>User</th><th>Max Trades/Day</th><th>RR Ratio</th><th>Risk % / Trade</th><th>Action</th></tr></thead>
+          <tbody id="copyConfigBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SUPPORT INBOX -->
+    <div class="admin-panel" id="panel-support">
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <button onclick="setSupportFilter('open')"   id="supf-open"   style="padding:6px 14px;border-radius:99px;border:1px solid var(--border);background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Open</button>
+        <button onclick="setSupportFilter('closed')" id="supf-closed" style="padding:6px 14px;border-radius:99px;border:1px solid var(--border);background:none;color:var(--text-dim);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Closed</button>
+      </div>
+      <div id="supportList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Support chat thread modal -->
+<div class="modal-back" id="chatModal">
+  <div class="modal-box" style="max-width:540px;padding:0;display:flex;flex-direction:column;height:min(640px,88vh);overflow:hidden;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid var(--border);flex-shrink:0;">
+      <div style="min-width:0;">
+        <div id="chatModalName" style="font-size:16px;font-weight:800;color:var(--text);">—</div>
+        <div id="chatModalSub" style="font-size:12px;color:var(--text-faint);margin-top:3px;word-break:break-all;">—</div>
+      </div>
+      <button onclick="closeChatThread()" style="background:none;border:none;cursor:pointer;color:var(--text-dim);padding:4px;line-height:0;flex-shrink:0;" aria-label="Close">
+        <svg style="width:20px;height:20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <div id="chatThread" style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px;"></div>
+    <div style="border-top:1px solid var(--border);padding:12px 16px;display:flex;gap:8px;flex-shrink:0;">
+      <input id="chatReplyInput" class="form-input" style="flex:1;height:42px;" placeholder="Type a reply…" onkeydown="if(event.key==='Enter')sendAdminReply()">
+      <button class="a-btn" onclick="sendAdminReply()" style="height:42px;padding:0 18px;">Send</button>
+    </div>
+    <div style="padding:0 16px 14px;display:flex;justify-content:flex-end;flex-shrink:0;">
+      <button class="a-btn" id="chatToggleStatusBtn" onclick="toggleChatStatus()">Close conversation</button>
+    </div>
+  </div>
+</div>
+
+<!-- Balance adjust modal -->
+<div class="modal-back" id="balModal">
+  <div class="modal-box">
+    <h3>Adjust Balance</h3>
+    <p style="font-size:13.5px;color:var(--text-dim);margin-bottom:16px;" id="balModalUser">—</p>
+    <div class="form-group">
+      <label class="form-label">Amount (positive to add, negative to subtract)</label>
+      <input class="form-input" id="balAmount" type="number" placeholder="e.g. 100 or -50"/>
+    </div>
+    <div class="modal-foot">
+      <button class="a-btn" onclick="closeBalModal()">Cancel</button>
+      <button class="a-btn" style="background:var(--accent);color:#fff;border-color:var(--accent);" onclick="submitBalAdj()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="probability.js"></script>
+<script>
+var adminUser = null, balTargetUid = null;
+
+function showToast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + (type||'ok');
+  setTimeout(function(){ t.classList.add('show'); }, 10);
+  setTimeout(function(){ t.classList.remove('show'); }, 3200);
+}
+
+function fmtCurrency(n) {
+  return '$' + (parseFloat(n)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function fmtDate(ts) {
+  if (!ts) return '—';
+  var d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+}
+
+function switchTab(btn) {
+  document.querySelectorAll('.admin-tab').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelectorAll('.admin-panel').forEach(function(p){ p.classList.remove('active'); });
+  btn.classList.add('active');
+  var tab = btn.dataset.tab;
+  document.getElementById('panel-'+tab).classList.add('active');
+  if (tab === 'overview')    loadOverview();
+  if (tab === 'markets')     loadMarkets();
+  if (tab === 'users')       loadUsers();
+  if (tab === 'deposits')    loadDeposits();
+  if (tab === 'withdrawals') loadWithdrawals();
+  if (tab === 'wallets')     loadWallets();
+  if (tab === 'kyc')         loadKyc();
+  if (tab === 'copyconfig')  loadCopyConfig();
+}
+
+async function loadOverview() {
+  try {
+    var [uSnap, mSnap, dSnap, wSnap] = await Promise.all([
+      db.collection('users').orderBy('createdAt','desc').get(),
+      db.collection('markets').where('status','==','active').get(),
+      db.collection('transactions').where('type','==','deposit').where('status','==','pending').get(),
+      db.collection('transactions').where('type','==','withdrawal').where('status','==','pending').get()
+    ]);
+    document.getElementById('ovUsers').textContent   = uSnap.size;
+    document.getElementById('ovMarkets').textContent = mSnap.size;
+    document.getElementById('ovDep').textContent     = dSnap.size;
+    document.getElementById('ovWd').textContent      = wSnap.size;
+    var recent = uSnap.docs.slice(0,8);
+    document.getElementById('ovUsersBody').innerHTML = recent.map(function(d){
+      var u = d.data();
+      return '<tr><td><strong>'+(u.fullName||'—')+'</strong></td><td>'+(u.email||'—')+'</td><td>'+(u.phone||'—')+'</td><td style="font-family:monospace;font-size:12px;">'+(u.accountId||'—')+'</td><td>'+fmtCurrency(u.balance)+'</td><td>'+fmtDate(u.createdAt)+'</td></tr>';
+    }).join('') || '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-dim);">No users yet.</td></tr>';
+  } catch(e) {
+    console.error('loadOverview error:', e);
+    showToast('Failed to load overview: ' + e.message, 'err');
+  }
+}
+
+async function loadUsers() {
+  var snap = await db.collection('users').orderBy('createdAt','desc').get();
+  document.getElementById('usersBody').innerHTML = snap.docs.map(function(d){
+    var u = d.data();
+    return '<tr><td><strong>'+(u.fullName||'—')+'</strong></td><td>'+(u.email||'—')+'</td><td>'+(u.phone||'—')+'</td><td style="font-family:monospace;font-size:12px;">'+(u.accountId||'—')+'</td><td>'+fmtCurrency(u.balance)+'</td><td>'+fmtDate(u.createdAt)+'</td>'+
+      '<td><button class="a-btn" data-uid="'+d.id+'" data-name="'+(u.fullName||'User')+'" onclick="openBalModal(this.dataset.uid,this.dataset.name)">Adjust Balance</button></td></tr>';
+  }).join('') || '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-dim);">No users.</td></tr>';
+}
+
+function openBalModal(uid, name) {
+  balTargetUid = uid;
+  document.getElementById('balModalUser').textContent = name;
+  document.getElementById('balAmount').value = '';
+  document.getElementById('balModal').classList.add('open');
+}
+function closeBalModal() { document.getElementById('balModal').classList.remove('open'); balTargetUid = null; }
+
+async function submitBalAdj() {
+  var amt = parseFloat(document.getElementById('balAmount').value);
+  if (isNaN(amt)) { showToast('Enter a valid amount.', 'err'); return; }
+  await db.collection('users').doc(balTargetUid).update({ balance: firebase.firestore.FieldValue.increment(amt) });
+  showToast('Balance updated.');
+  closeBalModal();
+  loadUsers();
+}
+
+async function loadDeposits() {
+  try {
+    var [dSnap, uSnap] = await Promise.all([
+      db.collection('transactions').where('type','==','deposit').get(),
+      db.collection('users').get()
+    ]);
+    var umap = {}; uSnap.forEach(function(d){ umap[d.id] = d.data(); });
+    var deps = dSnap.docs.slice().sort(function(a,b){
+      return ((b.data().createdAt&&b.data().createdAt.seconds)||0) - ((a.data().createdAt&&a.data().createdAt.seconds)||0);
+    });
+    document.getElementById('depsBody').innerHTML = deps.map(function(d){
+      var dep = d.data(), u = umap[dep.userId]||{};
+      var ref = dep.reference || dep.txid || '';
+      var txShort = ref ? (ref.slice(0,14)+(ref.length>14?'…':'')) : '—';
+      var actions = dep.status === 'pending'
+        ? '<button class="a-btn" data-id="'+d.id+'" data-uid="'+dep.userId+'" data-amt="'+(dep.amount||0)+'" onclick="approveDeposit(this.dataset.id,this.dataset.uid,parseFloat(this.dataset.amt))">Approve</button> '+
+          '<button class="a-btn danger" data-id="'+d.id+'" onclick="rejectDeposit(this.dataset.id)">Reject</button>'
+        : '<span style="font-size:12px;color:var(--text-dim);">'+dep.status+'</span>';
+      return '<tr><td><strong>'+(u.fullName||'—')+'</strong></td><td>'+fmtCurrency(dep.amount)+'</td><td>'+(dep.coin||'—')+'</td>'+
+        '<td style="font-family:monospace;font-size:12px;" title="'+ref+'">'+txShort+'</td>'+
+        '<td><span class="s-badge '+(dep.status||'pending')+'">'+(dep.status||'pending')+'</span></td>'+
+        '<td>'+fmtDate(dep.createdAt)+'</td><td>'+actions+'</td></tr>';
+    }).join('') || '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-dim);">No deposits.</td></tr>';
+  } catch(e) {
+    console.error('loadDeposits error:', e);
+    showToast('Failed to load deposits: ' + e.message, 'err');
+  }
+}
+
+async function approveDeposit(id, uid, amount) {
+  var batch = db.batch();
+  batch.update(db.collection('transactions').doc(id), { status:'approved', reviewedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  batch.update(db.collection('users').doc(uid), { balance: firebase.firestore.FieldValue.increment(amount) });
+  await batch.commit();
+  showToast('Deposit approved.'); loadDeposits();
+}
+async function rejectDeposit(id) {
+  await db.collection('transactions').doc(id).update({ status:'rejected', reviewedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  showToast('Deposit rejected.'); loadDeposits();
+}
+
+async function loadWithdrawals() {
+  try {
+    var [wSnap, uSnap] = await Promise.all([
+      db.collection('transactions').where('type','==','withdrawal').get(),
+      db.collection('users').get()
+    ]);
+    var umap = {}; uSnap.forEach(function(d){ umap[d.id] = d.data(); });
+    var wds = wSnap.docs.slice().sort(function(a,b){
+      return ((b.data().createdAt&&b.data().createdAt.seconds)||0) - ((a.data().createdAt&&a.data().createdAt.seconds)||0);
+    });
+    document.getElementById('wdsBody').innerHTML = wds.map(function(d){
+      var wd = d.data(), u = umap[wd.userId]||{};
+      var addrShort = (wd.address||'').slice(0,14)+((wd.address||'').length>14?'…':'');
+      var actions = wd.status === 'pending'
+        ? '<button class="a-btn" data-id="'+d.id+'" onclick="approveWd(this.dataset.id)">Approve</button> '+
+          '<button class="a-btn danger" data-id="'+d.id+'" onclick="rejectWd(this.dataset.id)">Reject</button>'
+        : '<span style="font-size:12px;color:var(--text-dim);">'+wd.status+'</span>';
+      return '<tr><td><strong>'+(u.fullName||'—')+'</strong></td><td>'+fmtCurrency(wd.amount)+'</td><td>'+(wd.coin||'—')+'</td>'+
+        '<td style="font-family:monospace;font-size:12px;" title="'+(wd.address||'')+'">'+(addrShort||'—')+'</td>'+
+        '<td><span class="s-badge '+(wd.status||'pending')+'">'+(wd.status||'pending')+'</span></td>'+
+        '<td>'+fmtDate(wd.createdAt)+'</td><td>'+actions+'</td></tr>';
+    }).join('') || '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-dim);">No withdrawals.</td></tr>';
+  } catch(e) {
+    console.error('loadWithdrawals error:', e);
+    showToast('Failed to load withdrawals: ' + e.message, 'err');
+  }
+}
+
+async function approveWd(id) {
+  await db.collection('transactions').doc(id).update({ status:'approved', reviewedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  showToast('Withdrawal approved.'); loadWithdrawals();
+}
+async function rejectWd(id) {
+  await db.collection('transactions').doc(id).update({ status:'rejected', reviewedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  showToast('Withdrawal rejected.'); loadWithdrawals();
+}
+
+// ── KYC ─────────────────────────────────────────────────────────────────────
+var _kycAll       = [];
+var _kycFilter    = 'all';
+var _kycReviewUid = null;
+
+async function loadKyc() {
+  // Load auto-verify setting
+  try {
+    var settSnap = await db.collection('settings').doc('kyc').get();
+    document.getElementById('autoVerifyToggle').checked = !!(settSnap.exists && settSnap.data().autoVerify);
+  } catch(e) {}
+
+  var tbody = document.getElementById('kycBody');
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-dim);">Loading…</td></tr>';
+  try {
+    var snap = await db.collection('kyc').orderBy('submittedAt','desc').get();
+    _kycAll = snap.docs.map(function(d){ return Object.assign({uid:d.id},d.data()); });
+    renderKycTable();
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#f2496b;padding:16px;">Error loading KYC submissions.</td></tr>';
+  }
+}
+
+function filterKyc(f) {
+  _kycFilter = f;
+  document.querySelectorAll('[id^="kycf-"]').forEach(function(b){
+    b.style.background = 'none'; b.style.color = 'var(--text-dim)';
+  });
+  var active = document.getElementById('kycf-'+f);
+  if (active) { active.style.background = 'var(--accent)'; active.style.color = '#fff'; }
+  renderKycTable();
+}
+
+function renderKycTable() {
+  var rows = _kycFilter === 'all' ? _kycAll : _kycAll.filter(function(r){ return r.status === _kycFilter; });
+  var tbody = document.getElementById('kycBody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-dim);">No KYC submissions' + (_kycFilter!=='all'?' with status "'+_kycFilter+'"':'')+  '.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(function(r) {
+    var statusColors = {pending:'#f2b341',verified:'#1fd17c',rejected:'#f2496b'};
+    var statusBg     = {pending:'rgba(242,179,65,.12)',verified:'rgba(31,209,124,.12)',rejected:'rgba(242,73,107,.12)'};
+    var col          = statusColors[r.status]  || 'var(--text-dim)';
+    var bg           = statusBg[r.status]      || 'transparent';
+    var ts = r.submittedAt ? (r.submittedAt.toDate ? r.submittedAt.toDate() : new Date(r.submittedAt)) : null;
+    var dateStr = ts ? ts.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—';
+    var idLabel = {passport:'Passport','national-id':'National ID','drivers-license':"Driver's License"}[r.idType] || r.idType || '—';
+    return '<tr>'+
+      '<td style="font-family:monospace;font-size:12px;color:var(--text-dim);">'+r.uid.slice(0,14)+'…</td>'+
+      '<td>'+idLabel+'</td>'+
+      '<td style="font-size:12.5px;color:var(--text-dim);">'+dateStr+'</td>'+
+      '<td><span style="padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700;background:'+bg+';color:'+col+';">'+r.status+'</span></td>'+
+      '<td style="display:flex;gap:6px;align-items:center;">'+
+        '<button onclick="openKycModal(\''+r.uid+'\')" style="height:30px;padding:0 10px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text);font-size:12px;cursor:pointer;font-family:inherit;">Review</button>'+
+        (r.status!=='verified' ? '<button onclick="quickKycStatus(\''+r.uid+'\',\'verified\')" style="height:30px;padding:0 10px;border-radius:8px;border:none;background:rgba(31,209,124,.12);color:#1fd17c;font-size:12px;cursor:pointer;font-family:inherit;">✓</button>' : '')+
+        (r.status!=='rejected' ? '<button onclick="quickKycStatus(\''+r.uid+'\',\'rejected\')" style="height:30px;padding:0 10px;border-radius:8px;border:none;background:rgba(242,73,107,.12);color:#f2496b;font-size:12px;cursor:pointer;font-family:inherit;">✗</button>' : '')+
+      '</td>'+
+    '</tr>';
+  }).join('');
+}
+
+async function quickKycStatus(uid, status) {
+  try {
+    var batch = db.batch();
+    batch.update(db.collection('kyc').doc(uid),   { status:status, reviewedAt:firebase.firestore.FieldValue.serverTimestamp(), reviewNote:'Quick action by admin' });
+    batch.update(db.collection('users').doc(uid), { kycStatus:status });
+    await batch.commit();
+    var row = _kycAll.find(function(r){ return r.uid===uid; });
+    if (row) row.status = status;
+    renderKycTable();
+    showToast(status==='verified'?'KYC approved.':'KYC rejected.');
+  } catch(e) { showToast('Action failed: '+e.message); }
+}
+
+function openKycModal(uid) {
+  var r = _kycAll.find(function(x){ return x.uid===uid; });
+  if (!r) return;
+  _kycReviewUid = uid;
+  document.getElementById('kycModalUser').textContent   = uid.slice(0,18)+'…';
+  document.getElementById('kycModalIdType').textContent = {passport:'Passport','national-id':'National ID','drivers-license':"Driver's License"}[r.idType]||r.idType||'—';
+  var statusColors = {pending:'#f2b341',verified:'#1fd17c',rejected:'#f2496b'};
+  document.getElementById('kycModalStatus').innerHTML = '<span style="font-weight:700;color:'+(statusColors[r.status]||'var(--text)')+';">'+r.status+'</span>';
+  document.getElementById('kycFrontImg').src  = r.frontImage||'';
+  document.getElementById('kycFrontLink').href= r.frontImage||'#';
+  document.getElementById('kycBackImg').src   = r.backImage||'';
+  document.getElementById('kycBackLink').href = r.backImage||'#';
+  document.getElementById('kycReviewNote').value = r.reviewNote||'';
+  document.getElementById('kycModalErr').style.display = 'none';
+  document.getElementById('kycModal').style.display = 'flex';
+}
+
+function closeKycModal() {
+  document.getElementById('kycModal').style.display = 'none';
+  _kycReviewUid = null;
+}
+
+async function reviewKyc(status) {
+  if (!_kycReviewUid) return;
+  var note = document.getElementById('kycReviewNote').value.trim();
+  var errEl= document.getElementById('kycModalErr');
+  errEl.style.display = 'none';
+  try {
+    var batch = db.batch();
+    batch.update(db.collection('kyc').doc(_kycReviewUid),   { status:status, reviewedAt:firebase.firestore.FieldValue.serverTimestamp(), reviewNote:note });
+    batch.update(db.collection('users').doc(_kycReviewUid), { kycStatus:status });
+    await batch.commit();
+    var row = _kycAll.find(function(r){ return r.uid===_kycReviewUid; });
+    if (row) { row.status=status; row.reviewNote=note; }
+    closeKycModal();
+    renderKycTable();
+    showToast(status==='verified'?'KYC approved.':'KYC rejected.');
+  } catch(e) { errEl.textContent='Error: '+e.message; errEl.style.display='block'; }
+}
+
+async function toggleAutoVerify(checked) {
+  try {
+    await db.collection('settings').doc('kyc').set({ autoVerify: checked }, { merge:true });
+    showToast('Auto-verify '+(checked?'enabled':'disabled')+'.');
+  } catch(e) { showToast('Failed to update setting.'); }
+}
+
+// ── COPY TRADING CONFIG (per-user) ──────────────────────────────────────────
+var RR_OPTIONS = [0.5, 1, 2, 3];
+function rrOptionsHtml(current) {
+  return RR_OPTIONS.map(function(v) {
+    return '<option value="'+v+'"'+(v===current?' selected':'')+'>1:'+v+'</option>';
+  }).join('');
+}
+async function loadCopyConfig() {
+  try {
+    var snap = await db.collection('users').orderBy('createdAt','desc').get();
+    document.getElementById('copyConfigBody').innerHTML = snap.docs.map(function(d){
+      var u = d.data();
+      var maxTrades = typeof u.copyMaxTrades === 'number' ? u.copyMaxTrades : 5;
+      var rr        = typeof u.copyRR        === 'number' ? u.copyRR        : 1;
+      var risk      = typeof u.copyRisk      === 'number' ? u.copyRisk      : 10;
+      return '<tr data-uid="'+d.id+'">'+
+        '<td><strong>'+(u.fullName||'—')+'</strong><br><span style="font-size:11px;color:var(--text-faint);">'+(u.email||'—')+'</span></td>'+
+        '<td><input type="number" class="cc-maxtrades" min="2" max="50" step="2" value="'+maxTrades+'" style="width:80px;height:36px;padding:0 8px;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box;"></td>'+
+        '<td><select class="cc-rr" style="height:36px;padding:0 8px;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box;">'+rrOptionsHtml(rr)+'</select></td>'+
+        '<td><input type="number" class="cc-risk" min="1" max="100" step="1" value="'+risk+'" style="width:70px;height:36px;padding:0 8px;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box;"></td>'+
+        '<td><button class="a-btn" onclick="saveCopyConfig(this)">Save</button></td>'+
+      '</tr>';
+    }).join('') || '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-dim);">No users.</td></tr>';
+  } catch(e) {
+    console.error('loadCopyConfig error:', e);
+    showToast('Failed to load Copy Trading Config: ' + e.message, 'err');
+  }
+}
+async function saveCopyConfig(btn) {
+  var row = btn.closest('tr');
+  var uid = row.dataset.uid;
+  var maxTrades = parseInt(row.querySelector('.cc-maxtrades').value, 10);
+  var rr        = parseFloat(row.querySelector('.cc-rr').value);
+  var risk      = parseFloat(row.querySelector('.cc-risk').value);
+
+  if (!maxTrades || maxTrades < 2 || isNaN(rr) || isNaN(risk) || risk <= 0) {
+    showToast('Enter valid values before saving.', 'err');
+    return;
+  }
+  var originalText = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    await db.collection('users').doc(uid).update({
+      copyMaxTrades: maxTrades, copyRR: rr, copyRisk: risk
+    });
+    showToast('Copy Trading config saved.');
+  } catch(e) {
+    showToast('Failed to save: ' + e.message, 'err');
+  }
+  btn.disabled = false; btn.textContent = originalText;
+}
+
+function doSignOut() { auth.signOut().then(function(){ location.href = 'login.html'; }); }
+
+// ── WALLETS ────────────────────────────────────────────────────────────────
+var WALLET_COINS = [
+  { id:'BTC',  label:'Bitcoin (BTC)' },
+  { id:'ETH',  label:'Ethereum (ETH)' },
+  { id:'LTC',  label:'Litecoin (LTC)' },
+  { id:'BNB',  label:'BNB (BNB)' },
+  { id:'USDT', label:'Tether USDT' },
+  { id:'USDC', label:'USD Coin (USDC)' },
+  { id:'XRP',  label:'XRP (XRP)' }
+];
+
+async function loadWallets() {
+  var existing = {};
+  try {
+    var snap = await db.collection('wallets').doc('addresses').get();
+    if (snap.exists) existing = snap.data();
+  } catch(e) {}
+
+  var container = document.getElementById('walletFields');
+  container.innerHTML = WALLET_COINS.map(function(c) {
+    return '<div>'+
+      '<label style="font-size:13px;font-weight:700;color:var(--text);display:block;margin-bottom:8px;">'+c.label+'</label>'+
+      '<input id="wallet_'+c.id+'" type="text" value="'+(existing[c.id]||'')+'" placeholder="Enter '+c.id+' wallet address" '+
+        'style="width:100%;height:44px;padding:0 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:13.5px;font-family:monospace;outline:none;box-sizing:border-box;" '+
+        'onfocus="this.style.borderColor=\'var(--accent)\'" onblur="this.style.borderColor=\'var(--border)\'"/>'+
+    '</div>';
+  }).join('');
+}
+
+async function saveAllWallets() {
+  var msg = document.getElementById('walletSaveMsg');
+  msg.style.display = 'none';
+  try {
+    var data = { updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+    WALLET_COINS.forEach(function(c) {
+      var input = document.getElementById('wallet_'+c.id);
+      data[c.id] = input ? input.value.trim() : '';
+    });
+    await db.collection('wallets').doc('addresses').set(data);
+    msg.textContent       = 'All wallet addresses saved successfully.';
+    msg.style.background  = 'var(--yes-bg,rgba(31,209,124,.13))';
+    msg.style.color       = 'var(--yes,#1fd17c)';
+    msg.style.display     = 'block';
+    showToast('Wallet addresses saved.');
+  } catch(e) {
+    msg.textContent       = 'Failed to save: '+e.message;
+    msg.style.background  = 'rgba(242,73,107,.1)';
+    msg.style.color       = '#f2496b';
+    msg.style.display     = 'block';
+  }
+}
+
+async function loadMarkets() {
+  var tbody = document.getElementById('marketsBody');
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-dim);">Loading…</td></tr>';
+  try {
+    var mSnap = await db.collection('markets').orderBy('createdAt','desc').get();
+    if (mSnap.empty) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-dim);">No markets yet. Create one above.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = mSnap.docs.map(function(d) {
+      var m    = d.data();
+      var tv   = m.totalVolume || 0;
+      var prob = Math.round(vpProb.now(Object.assign({id:d.id}, m)));
+      var vol  = tv >= 1000 ? '$'+((tv/1000).toFixed(1))+'K' : '$'+Math.round(tv);
+      var ends = typeof m.resolutionDays === 'number'
+        ? m.resolutionDays + ' day' + (m.resolutionDays===1?'':'s') + ' per user' + (m.showAfterDays ? ' (appears +' + m.showAfterDays + 'd)' : '')
+        : (m.resolutionDate ? (m.resolutionDate.toDate ? m.resolutionDate.toDate() : new Date(m.resolutionDate)).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—');
+      var stCls = m.status==='active' ? 'active' : 'resolved';
+      var qShort = (m.question||'').length > 55 ? (m.question||'').slice(0,52)+'…' : (m.question||'—');
+      return '<tr>'+
+        '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+(m.question||'')+'"><strong>'+qShort+'</strong></td>'+
+        '<td>'+(m.category||'—')+'</td>'+
+        '<td style="font-family:monospace;color:var(--yes);">'+prob+'%</td>'+
+        '<td style="font-family:monospace;">'+vol+'</td>'+
+        '<td style="font-size:12px;color:var(--text-dim);">'+ends+'</td>'+
+        '<td><span class="s-badge '+stCls+'">'+m.status+'</span></td>'+
+      '</tr>';
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--no);">Error loading markets.</td></tr>';
+    console.error('loadMarkets error:', e);
+  }
+}
+
+// ── Create Market ──────────────────────────────────────────────────────────
+function openCreateMarket() {
+  document.getElementById('cmQuestion').value      = '';
+  document.getElementById('cmCategory').value      = 'politics';
+  document.getElementById('cmResDays').value        = '';
+  document.getElementById('cmShowAfter').value     = '0';
+  document.getElementById('cmProb').value          = '50';
+  document.getElementById('cmBias').value          = 'YES';
+  document.getElementById('cmMarketType').value    = 'binary';
+  document.getElementById('cmOutcomes').value      = '';
+  document.getElementById('cmOutcomesWrap').style.display = 'none';
+  document.getElementById('cmErr').style.display   = 'none';
+  document.getElementById('cmModal').style.display = 'flex';
+}
+function closeCreateMarket() { document.getElementById('cmModal').style.display = 'none'; }
+
+document.addEventListener('DOMContentLoaded', function() {
+  var mtSel = document.getElementById('cmMarketType');
+  if (mtSel) mtSel.addEventListener('change', function() {
+    document.getElementById('cmOutcomesWrap').style.display = this.value === 'multi' ? 'block' : 'none';
+  });
+});
+
+async function submitCreateMarket() {
+  var question = document.getElementById('cmQuestion').value.trim();
+  var category = document.getElementById('cmCategory').value;
+  var resDaysVal = document.getElementById('cmResDays').value;
+  var resDays  = parseInt(resDaysVal, 10);
+  var showAfterVal = document.getElementById('cmShowAfter').value;
+  var showAfter = showAfterVal === '' ? 0 : parseInt(showAfterVal, 10);
+  var prob     = parseFloat(document.getElementById('cmProb').value);
+  var bias     = document.getElementById('cmBias').value;
+  var mType    = document.getElementById('cmMarketType').value;
+  var outcomes = document.getElementById('cmOutcomes').value.trim();
+  var errEl    = document.getElementById('cmErr');
+  errEl.style.display = 'none';
+
+  var errs = [];
+  if (!question)                        errs.push('Question is required.');
+  if (!resDaysVal || isNaN(resDays) || resDays < 1) errs.push('Resolution period must be at least 1 day.');
+  if (isNaN(showAfter) || showAfter < 0 || showAfter > 365) errs.push('Show-after days must be 0-365.');
+  if (isNaN(prob)||prob<20||prob>80)    errs.push('Starting probability must be 20–80.');
+  if (!bias)                            errs.push('Resolution bias is required.');
+  if (mType === 'multi' && !outcomes)   errs.push('Outcomes are required for multi-outcome markets.');
+
+  if (errs.length) { errEl.textContent = errs.join(' '); errEl.style.display = 'block'; return; }
+
+  var btn = document.getElementById('cmBtn');
+  btn.disabled = true; btn.textContent = 'Creating…';
+
+  try {
+    var seedVol = Math.floor(Math.random() * 7200 + 800);
+    var parsedOutcomes = [];
+
+    if (mType === 'multi') {
+      parsedOutcomes = outcomes.split('\n').map(function(line, i, arr) {
+        var name = line.trim();
+        return { name: name, probability: Math.round(100 / arr.length) };
+      }).filter(function(o){ return o.name; });
+    }
+
+    var batch   = db.batch();
+    var mktRef  = db.collection('markets').doc();
+    var liveRef = db.collection('marketLive').doc(mktRef.id);
+    var secRef  = db.collection('marketSecrets').doc(mktRef.id);
+
+    batch.set(mktRef, {
+      question:            question,
+      category:            category,
+      marketType:          mType,
+      outcomes:            parsedOutcomes,
+      resolutionDays:      resDays,
+      showAfterDays:       showAfter,
+      startingProbability: prob,
+      status:              'active',
+      resolvedOutcome:     null,
+      resolvedAt:          null,
+      totalVolume:         seedVol,
+      createdBy:           adminUser.uid,
+      createdAt:           firebase.firestore.FieldValue.serverTimestamp()
+    });
+    batch.set(liveRef, {
+      totalVolume:        seedVol,
+      lastUpdated:        firebase.firestore.FieldValue.serverTimestamp()
+    });
+    batch.set(secRef, {
+      resolutionBias:    bias
+    });
+
+    await batch.commit();
+
+    closeCreateMarket();
+    showToast('Market created successfully.');
+    loadMarkets();
+  } catch(e) {
+    errEl.textContent = 'Failed to create market: ' + e.message;
+    errEl.style.display = 'block';
+  }
+  btn.disabled = false; btn.textContent = 'Create Market';
+}
+
+// ── SUPPORT INBOX ──────────────────────────────────────────────────────────
+// Live view of every chats/{chatId} doc. Guest-typed text is untrusted, so
+// everything interpolated into innerHTML goes through supEsc().
+var _chatDocs = [], _supportFilter = 'open', _openChatId = null, _threadUnsub = null;
+
+function supEsc(v) {
+  return String(v == null ? '' : v).replace(/[&<>"']/g, function(c) {
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function supSecs(ts) { return (ts && ts.seconds) || 0; }
+function supAgo(ts) {
+  if (!ts || !ts.seconds) return '';
+  var m = Math.floor((Date.now()/1000 - ts.seconds) / 60);
+  if (m < 1) return 'just now';
+  if (m < 60) return m + 'm ago';
+  var h = Math.floor(m / 60);
+  if (h < 24) return h + 'h ago';
+  return Math.floor(h / 24) + 'd ago';
+}
+function supPage(url) {
+  if (!url) return '';
+  try { var p = new URL(url).pathname.split('/').pop(); return p || 'index.html'; } catch(e) { return ''; }
+}
+
+function startSupportInbox() {
+  db.collection('chats').onSnapshot(function(snap) {
+    _chatDocs = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+    // Unread conversations first, then most recent activity
+    _chatDocs.sort(function(a, b) {
+      var au = a.unreadByAdmin ? 1 : 0, bu = b.unreadByAdmin ? 1 : 0;
+      if (au !== bu) return bu - au;
+      return supSecs(b.lastMessageAt) - supSecs(a.lastMessageAt);
+    });
+    var unread = _chatDocs.filter(function(c){ return c.unreadByAdmin && (c.status||'open') === 'open'; }).length;
+    var badge = document.getElementById('supportBadge');
+    badge.textContent = unread;
+    badge.style.display = unread ? 'inline-flex' : 'none';
+    renderSupportList();
+    // Keep the header of an open thread in sync (e.g. status changes)
+    if (_openChatId) updateChatModalHeader();
+  }, function(e) { console.warn('Support inbox listener error:', e.message); });
+}
+
+function setSupportFilter(f) {
+  _supportFilter = f;
+  ['open','closed'].forEach(function(k) {
+    var b = document.getElementById('supf-'+k);
+    b.style.background = k === f ? 'var(--accent)' : 'none';
+    b.style.color      = k === f ? '#fff' : 'var(--text-dim)';
+  });
+  renderSupportList();
+}
+
+function renderSupportList() {
+  var list = document.getElementById('supportList');
+  if (!list) return;
+  var rows = _chatDocs.filter(function(c){ return (c.status||'open') === _supportFilter; });
+  if (!rows.length) {
+    list.innerHTML = '<div style="text-align:center;padding:36px 16px;color:var(--text-dim);font-size:14px;">No '+_supportFilter+' conversations.</div>';
+    return;
+  }
+  list.innerHTML = rows.map(function(c) {
+    var who  = c.isGuest ? 'Guest visitor' : (c.userName || 'User');
+    var sub  = c.isGuest ? ('Anonymous · ' + c.id.slice(0,8) + '…') : [c.accountId, c.userEmail].filter(Boolean).join(' · ');
+    var page = supPage(c.originUrl);
+    var unreadBadge = c.unreadByAdmin
+      ? '<span style="background:#f2496b;color:#fff;border-radius:99px;font-size:11px;font-weight:800;padding:2px 8px;">'+supEsc((c.unreadCount||1)+' new')+'</span>'
+      : '';
+    return '<div data-id="'+supEsc(c.id)+'" onclick="openChatThread(this.dataset.id)" style="cursor:pointer;background:var(--surface);border:1px solid '+(c.unreadByAdmin?'var(--accent)':'var(--border)')+';border-radius:14px;padding:14px 16px;">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px;">'+
+        '<strong style="font-size:14.5px;color:var(--text);">'+supEsc(who)+'</strong>'+
+        '<span style="display:flex;align-items:center;gap:8px;flex-shrink:0;">'+unreadBadge+'<span style="font-size:11.5px;color:var(--text-faint);">'+supEsc(supAgo(c.lastMessageAt))+'</span></span>'+
+      '</div>'+
+      '<div style="font-size:12px;color:var(--text-faint);margin-bottom:6px;word-break:break-all;">'+supEsc(sub)+(page?' · started on '+supEsc(page):'')+'</div>'+
+      '<div style="font-size:13px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+supEsc(c.lastMessage || 'No messages yet')+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+function updateChatModalHeader() {
+  var c = _chatDocs.find(function(x){ return x.id === _openChatId; });
+  if (!c) return;
+  document.getElementById('chatModalName').textContent = c.isGuest ? 'Guest visitor' : (c.userName || 'User');
+  var sub = c.isGuest ? ('Anonymous · ' + c.id) : [c.accountId, c.userEmail].filter(Boolean).join(' · ');
+  var page = supPage(c.originUrl);
+  document.getElementById('chatModalSub').textContent = sub + (page ? ' · started on ' + page : '');
+  document.getElementById('chatToggleStatusBtn').textContent = (c.status||'open') === 'open' ? 'Close conversation' : 'Reopen conversation';
+}
+
+async function markChatRead(id) {
+  var c = _chatDocs.find(function(x){ return x.id === id; });
+  if (c && !c.unreadByAdmin) return;
+  try { await db.collection('chats').doc(id).update({ unreadByAdmin: false, unreadCount: 0 }); }
+  catch(e) { console.warn('markChatRead failed:', e.message); }
+}
+
+function openChatThread(id) {
+  _openChatId = id;
+  updateChatModalHeader();
+  document.getElementById('chatModal').classList.add('open');
+  document.getElementById('chatReplyInput').value = '';
+  if (_threadUnsub) _threadUnsub();
+  var thread = document.getElementById('chatThread');
+  thread.innerHTML = '';
+  _threadUnsub = db.collection('chats').doc(id).collection('messages').orderBy('timestamp','asc').onSnapshot(function(snap) {
+    thread.innerHTML = snap.docs.map(function(d) {
+      var m = d.data(), mine = m.sender === 'admin';
+      var label = m.sender === 'bot' ? 'Bot' : m.sender === 'user' ? 'Visitor' : 'You';
+      return '<div style="max-width:82%;align-self:'+(mine?'flex-end':'flex-start')+';background:'+(mine?'var(--accent)':'var(--bg)')+';color:'+(mine?'#fff':'var(--text)')+';border:1px solid '+(mine?'var(--accent)':'var(--border)')+';border-radius:14px;padding:9px 13px;font-size:13.5px;line-height:1.45;word-wrap:break-word;">'+
+        '<span style="display:block;font-size:10px;font-weight:700;opacity:.7;margin-bottom:3px;">'+label+'</span>'+supEsc(m.text)+'</div>';
+    }).join('');
+    thread.scrollTop = thread.scrollHeight;
+    // Admin is looking at this thread, so anything arriving now counts as read
+    if (_openChatId === id) markChatRead(id);
+  }, function(e) { console.warn('Thread listener error:', e.message); });
+  markChatRead(id);
+}
+
+function closeChatThread() {
+  document.getElementById('chatModal').classList.remove('open');
+  if (_threadUnsub) { _threadUnsub(); _threadUnsub = null; }
+  _openChatId = null;
+}
+
+async function sendAdminReply() {
+  var input = document.getElementById('chatReplyInput');
+  var text = input.value.trim();
+  if (!text || !_openChatId) return;
+  input.value = '';
+  var ref = db.collection('chats').doc(_openChatId);
+  try {
+    await ref.collection('messages').add({ text: text, sender: 'admin', timestamp: firebase.firestore.FieldValue.serverTimestamp(), read: false });
+    await ref.update({
+      lastMessage:   text,
+      lastMessageAt: firebase.firestore.FieldValue.serverTimestamp(),
+      unreadByAdmin: false,
+      unreadCount:   0,
+      unreadByUser:  true,
+      status:        'open'
+    });
+  } catch(e) { showToast('Failed to send reply: ' + e.message, 'err'); }
+}
+
+async function toggleChatStatus() {
+  var c = _chatDocs.find(function(x){ return x.id === _openChatId; });
+  if (!c) return;
+  var next = (c.status||'open') === 'open' ? 'closed' : 'open';
+  try {
+    await db.collection('chats').doc(_openChatId).update({ status: next });
+    showToast('Conversation ' + (next === 'closed' ? 'closed.' : 'reopened.'));
+    if (next === 'closed') closeChatThread();
+  } catch(e) { showToast('Failed to update conversation: ' + e.message, 'err'); }
+}
+
+// Guard — must be admin
+auth.onAuthStateChanged(async function(user) {
+  if (!user) { location.href = 'login.html'; return; }
+  try {
+    var snap = await db.collection('admins').doc(user.uid).get();
+    if (!snap.exists) { location.href = 'index.html'; return; }
+    adminUser = user;
+    document.getElementById('adminEmailLabel').textContent = user.email || '';
+    startSupportInbox();
+    document.getElementById('loader').style.display = 'none';
+    document.getElementById('adminShell').style.display = 'block';
+    loadOverview();
+  } catch(e) {
+    console.error('Admin auth failed:', e);
+    // Do not redirect on transient errors — show the shell so admin can retry
+    document.getElementById('loader').style.display    = 'none';
+    document.getElementById('adminShell').style.display = 'block';
+  }
+});
+</script>
+<!-- Create Market Modal -->
+<div id="cmModal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.65);align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)closeCreateMarket()">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 24px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <h3 style="font-size:18px;font-weight:800;color:var(--text);margin:0;">Create Market</h3>
+      <button onclick="closeCreateMarket()" style="background:none;border:none;cursor:pointer;color:var(--text-dim);padding:4px;"><svg style="width:20px;height:20px;" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div><label style="font-size:13px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:6px;">Question *</label>
+        <input id="cmQuestion" type="text" placeholder="e.g. Will X happen before Y date?" maxlength="240" style="width:100%;height:44px;padding:0 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div><label style="font-size:13px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:6px;">Category *</label>
+          <select id="cmCategory" style="width:100%;height:44px;padding:0 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:inherit;outline:none;">
+            <option value="politics">Politics</option><option value="sports">Sports</option>
+            <option value="crypto">Crypto</option><option value="finance">Finance</option>
+            <option value="tech">Tech</option><option value="culture">Culture</option>
+            <option value="geopolitics">Geopolitics</option><option value="economy">Economy</option>
+          </select></div>
+        <div><label style="font-size:13px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:6px;">Market Type *</label>
+          <select id="cmMarketType" style="width:100%;height:44px;padding:0 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:inherit;outline:none;">
+            <option value="binary">Binary (Yes/No)</option>
+            <option value="multi">Multi-outcome</option>
+          </select></div>
+        <div><label style="font-size:13px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:6px;">Resolution Period (days) *</label>
+          <input id="cmResDays" type="number" min="1" max="365" step="1" placeholder="e.g. 5" style="width:100%;height:44px;padding:0 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"></div>
+        <div><label style="font-size:13px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:6px;">Starting Probability (YES %)</label>
+          <input id="cmProb" type="number" min="20" max="80" value="50" style="width:100%;height:44px;padding:0 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;"></div>
+      </div>
+      <div><label style="font-size:13px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:6px;">Show to users after (days)</label>
+        <input id="cmShowAfter" type="number" min="0" max="365" step="1" value="0" style="width:100%;height:44px;padding:0 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;">
+        <div style="font-size:12px;color:var(--text-faint);margin-top:6px;">0 = visible immediately. Otherwise the market appears for each user this many days after they sign up (existing users: after this market is created), and their resolution period starts then.</div></div>
+      <div style="font-size:12px;color:var(--text-faint);margin-top:-6px;">Each user's close date = later of their signup date or this market's creation date, plus this many days. Positions settle automatically.</div>
+      <div><label style="font-size:13px;font-weight:600;color:var(--warn,#f2b341);display:block;margin-bottom:6px;">Resolution Bias (Hidden from users) *</label>
+        <select id="cmBias" style="width:100%;height:44px;padding:0 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:inherit;outline:none;">
+          <option value="YES">YES — this market will resolve YES</option>
+          <option value="NO">NO — this market will resolve NO</option>
+        </select></div>
+      <div id="cmOutcomesWrap" style="display:none;">
+        <label style="font-size:13px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:6px;">Outcomes (one per line) *</label>
+        <textarea id="cmOutcomes" rows="4" placeholder="Team A&#10;Team B&#10;Draw" style="width:100%;padding:10px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:inherit;outline:none;resize:vertical;box-sizing:border-box;"></textarea>
+      </div>
+      <div id="cmErr" style="font-size:13px;color:var(--no);display:none;padding:8px 12px;background:rgba(242,73,107,.08);border-radius:8px;"></div>
+      <button id="cmBtn" onclick="submitCreateMarket()" style="height:46px;border-radius:99px;background:var(--accent);color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:inherit;">Create Market</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Close profile dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  var menu = document.querySelector('.profile-menu');
+  if (menu && !menu.contains(e.target)) menu.removeAttribute('open');
+});
+// Logout
+function doLogout() {
+  auth.signOut().then(function() { window.location.href = 'login.html'; });
+}
+// KYC — placeholder until third-party integration details provided
+function openKYC() {
+  // TODO: replace with real KYC provider integration
+  alert('KYC verification coming soon.');
+}
+</script>
+
+<!-- KYC review modal -->
+<div class="modal-back" id="kycModal" style="display:none;">
+  <div class="modal-box" style="max-width:520px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h3 style="font-size:17px;font-weight:800;color:var(--text);margin:0;">KYC Review</h3>
+      <button onclick="closeKycModal()" style="background:none;border:none;cursor:pointer;color:var(--text-dim);">
+        <svg style="width:20px;height:20px;" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div style="margin-bottom:14px;">
+      <p style="font-size:13px;color:var(--text-dim);margin:0 0 4px;">User: <strong id="kycModalUser" style="color:var(--text);"></strong></p>
+      <p style="font-size:13px;color:var(--text-dim);margin:0 0 4px;">ID Type: <strong id="kycModalIdType" style="color:var(--text);"></strong></p>
+      <p style="font-size:13px;color:var(--text-dim);margin:0;">Status: <span id="kycModalStatus"></span></p>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+      <div>
+        <p style="font-size:11px;font-weight:700;color:var(--text-dim);text-transform:uppercase;margin:0 0 6px;">Front</p>
+        <a id="kycFrontLink" href="#" target="_blank">
+          <img id="kycFrontImg" alt="Front" style="width:100%;border-radius:8px;border:1px solid var(--border);min-height:80px;object-fit:cover;"/>
+        </a>
+      </div>
+      <div>
+        <p style="font-size:11px;font-weight:700;color:var(--text-dim);text-transform:uppercase;margin:0 0 6px;">Back</p>
+        <a id="kycBackLink" href="#" target="_blank">
+          <img id="kycBackImg" alt="Back" style="width:100%;border-radius:8px;border:1px solid var(--border);min-height:80px;object-fit:cover;"/>
+        </a>
+      </div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <label style="font-size:13px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:6px;">Review note (optional)</label>
+      <textarea id="kycReviewNote" rows="2" placeholder="Reason for rejection, or leave blank for approval…" style="width:100%;padding:10px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-family:inherit;outline:none;resize:vertical;box-sizing:border-box;"></textarea>
+    </div>
+    <div id="kycModalErr" style="font-size:13px;color:#f2496b;display:none;margin-bottom:10px;"></div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="reviewKyc('rejected')" style="flex:1;height:44px;border-radius:99px;background:rgba(242,73,107,.1);color:#f2496b;border:1px solid rgba(242,73,107,.25);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">✗ Reject</button>
+      <button onclick="reviewKyc('verified')" style="flex:1;height:44px;border-radius:99px;background:rgba(31,209,124,.12);color:#1fd17c;border:1px solid rgba(31,209,124,.3);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">✓ Approve</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
