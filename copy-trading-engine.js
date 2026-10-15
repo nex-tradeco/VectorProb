@@ -46,6 +46,14 @@
   };
   var COMMODITY_SYMS = ['XAU/USD','XAG/USD','WTI/USD','NGAS/USD','XPT/USD'];
 
+  // Realistic outcomes: a trade doesn't close exactly on its target. The final win or
+  // loss lands randomly within roughly ±10% of the target (a $10 target closes anywhere
+  // from about $9.05 to $10.95). It scales with the target, so $2 and $300 targets vary
+  // by the same proportion. 9.5% rather than 10% leaves room for price rounding so the
+  // result never drifts outside the ±10% band.
+  var OUTCOME_SPREAD = 0.095;
+  function outcomeFactor() { return 1 + (Math.random() * 2 - 1) * OUTCOME_SPREAD; }
+
   // ── State ─────────────────────────────────────────────────────────────────
   var _traderTimers = {};   // { traderId: timerHandle }
   var _started       = false;
@@ -58,21 +66,25 @@
   }
 
   // ── Fire a single trade for the current user, using their own config ───────
-  async function mirrorTradeToUser(trader, riskPct, rrRatio) {
+  async function mirrorTradeToUser(trader, riskPct, rrRatio, baseBalance) {
     var currentUser = auth.currentUser;
     if (!currentUser) return false;
     try {
       var uSnap = await db.collection('users').doc(currentUser.uid).get();
       if (!uSnap.exists) return false;
       var balance = uSnap.data().balance || 0;
-      if (balance <= 0) return false;
+      if (balance < 10) return false;   // $10 minimum available balance
 
       // Open positions: never stack a copy trade on a symbol that already has one,
       // and never open against any open position the user already holds there.
       var openSnap = await db.collection('trades')
         .where('userId', '==', currentUser.uid).where('status', '==', 'open').get();
-      var openBySym = {};
-      openSnap.forEach(function(d) { var t = d.data(); (openBySym[t.symbol] = openBySym[t.symbol] || []).push(t); });
+      var openBySym = {}, openList = [];
+      openSnap.forEach(function(d) { var t = d.data(); openList.push(t); (openBySym[t.symbol] = openBySym[t.symbol] || []).push(t); });
+
+      // Margin: copy trades obey the same leverage rule as manual ones. Only instruments whose
+      // smallest lot (0.01) fits the free margin are candidates, and the lot is capped to fit.
+      var freeMargin = balance - usedMargin(openList);
 
       function dirFor(sym) {
         var sm = window._simState ? window._simState[sym] : null;
@@ -82,6 +94,7 @@
       // Pick instrument by weighted bias, from the symbols that are free
       var instruments = Object.keys(trader.bias).filter(function(sym) {
         if (!_prices[sym]) return false;
+        if (requiredMargin(sym, 0.01, _prices[sym]) > freeMargin) return false;   // can't afford even the minimum lot
         var d = dirFor(sym);
         return (openBySym[sym] || []).every(function(t) { return !t.isCopyTrade && t.type === d; });
       });
@@ -107,20 +120,34 @@
 
       var isCommodity = COMMODITY_SYMS.indexOf(chosen) !== -1;
       var slDist = SL_DIST[chosen] || 0.0010;
-      var tpDist = slDist * rrRatio;
-      var targetLoss = balance * (riskPct / 100);
+      // Risk is sized from the balance the user had when they started copying (baseBalance),
+      // not the live balance, so wins don't compound into ever-bigger trades. It is capped
+      // at the live balance so a trade never risks more than the user actually has.
+      var riskBase   = baseBalance > 0 ? Math.min(baseBalance, balance) : balance;
+      var targetLoss = riskBase * (riskPct / 100);
       var multiplier = chosen.indexOf('JPY') !== -1 ? 100 : isCommodity ? 1 : 10000;
       var lotSize = parseFloat((targetLoss / (slDist * multiplier)).toFixed(4));
       if (!lotSize || lotSize <= 0) lotSize = 0.01;
+      // Cap the lot to what the free margin supports. The exit levels below are sized from the
+      // final lot, so a smaller lot just means wider stop/take-profit distances and the
+      // dollar win/loss target is unchanged.
+      var maxLot = maxLotForMargin(chosen, freeMargin, entryPrice);
+      if (lotSize > maxLot) lotSize = Math.max(0.01, maxLot);
 
-      var tp = tradeType === 'BUY' ? entryPrice + tpDist : entryPrice - tpDist;
-      var sl = tradeType === 'BUY' ? entryPrice - slDist : entryPrice + slDist;
+      // Size the exit levels from the final (rounded) lot so the closing P&L equals the
+      // target times a random factor, independently for the win and the loss case.
+      var tpAdj = (targetLoss * rrRatio * outcomeFactor()) / (lotSize * multiplier);
+      var slAdj = (targetLoss * outcomeFactor()) / (lotSize * multiplier);
+
+      var tp = tradeType === 'BUY' ? entryPrice + tpAdj : entryPrice - tpAdj;
+      var sl = tradeType === 'BUY' ? entryPrice - slAdj : entryPrice + slAdj;
 
       await db.collection('trades').add({
         userId:       currentUser.uid,
         symbol:       chosen,
         type:         tradeType,
         lotSize:      lotSize,
+        margin:       requiredMargin(chosen, lotSize, entryPrice),
         entryPrice:   entryPrice,
         takeProfit:   parseFloat(tp.toFixed(5)),
         stopLoss:     parseFloat(sl.toFixed(5)),
@@ -181,13 +208,22 @@
       var riskPct   = typeof ud.copyRisk      === 'number' ? ud.copyRisk      : 10;
       var rrRatio   = typeof ud.copyRR        === 'number' ? ud.copyRR        : 1;
 
+      // Base balance is saved when the user starts following. Older follows made before this
+      // existed get their base set once, from their balance right now, then it stays fixed.
+      var baseBalance = (typeof ct.baseBalance === 'number' && ct.baseBalance > 0) ? ct.baseBalance : 0;
+      if (!baseBalance && (ud.balance || 0) > 0) {
+        baseBalance = ud.balance;
+        await db.collection('copyTrading').doc(currentUser.uid).update({ baseBalance: baseBalance });
+        ct.baseBalance = baseBalance;
+      }
+
       var pairInterval = Math.floor((24 * 60 * 60 * 1000) / Math.ceil(maxTrades / 2));
       var remaining = maxTrades - (ct.tradesToday || 0);
 
       if (remaining > 0 && isMarketOpen()) {
         var toFire = Math.min(2, remaining);
         for (var i = 0; i < toFire; i++) {
-          await mirrorTradeToUser(trader, riskPct, rrRatio);
+          await mirrorTradeToUser(trader, riskPct, rrRatio, baseBalance);
         }
         _ct = null;   // tradesToday changed — re-read next tick
       }

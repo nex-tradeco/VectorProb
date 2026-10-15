@@ -347,6 +347,9 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script src="user-cache.js"></script>
+<script src="copy-engines-boot.js"></script>
+<script src="balance-guard.js"></script>
 <script src="probability.js"></script>
 <script src="settlement-engine.js"></script>
 <script>
@@ -557,6 +560,11 @@ async function placeBet(side) {
 
   if (!vpWindow.isVisible(userData && userData.createdAt, market)) { showToast('This market is not available yet.','err'); return; }
   if (isWindowClosed(market)) { lockBetting(); showToast('Your window on this market has closed.','err'); return; }
+
+  // Minimum $10 available balance (fresh server read)
+  var bg = await BalanceGuard.check(currentUser.uid);
+  if (!bg.ok) { BalanceGuard.showBlock(bg); return; }
+  if (userData) userData.balance = bg.balance;
 
   var stake = parseFloat(document.getElementById('betAmount').value);
   if (!stake || stake < 1) { showToast('Enter a valid stake amount.','err'); return; }

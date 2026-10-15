@@ -94,7 +94,8 @@
         var fee   = Math.round(gross * FEE * 100) / 100;
         var net   = Math.round((gross - fee) * 100) / 100;
         tx.update(ref, { status: 'won', payoutAmount: net, feeAmount: fee, settledAt: ts });
-        tx.update(userRef, { balance: firebase.firestore.FieldValue.increment(net) });
+        // lastCredit tells the Firestore rules which settled position justifies this balance increase
+        tx.update(userRef, { balance: firebase.firestore.FieldValue.increment(net), lastCredit: { col: col, id: id } });
         tx.set(db.collection('transactions').doc(), {
           userId: _uid, type: 'payout', amount: net, relatedId: id, createdAt: ts });
         tx.set(db.collection('transactions').doc(), {

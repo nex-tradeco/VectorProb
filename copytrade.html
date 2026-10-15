@@ -263,6 +263,8 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script src="user-cache.js"></script>
+<script src="balance-guard.js"></script>
 <script src="probability.js"></script>
 <script src="settlement-engine.js"></script>
 <script src="copy-betting-engine.js"></script>
@@ -472,8 +474,11 @@ async function renderActiveTradingBanner() {
 }
 
 // ── Follow / Stop ───────────────────────────────────────────────────────────
-function openFollowModal(expertId, expertName) {
+async function openFollowModal(expertId, expertName) {
   if (activeCopyId) { pToast('Stop your current copy first.','err'); return; }
+  if (!currentUser) return;
+  var bg = await BalanceGuard.check(currentUser.uid);
+  if (!bg.ok) { BalanceGuard.showBlock(bg); return; }
   pendingExpert = { id: expertId, name: expertName };
   document.getElementById('followModalTitle').textContent = 'Follow '+expertName;
   document.getElementById('followModal').style.display = 'flex';
@@ -487,6 +492,8 @@ async function confirmFollow() {
   if (!pendingExpert || !currentUser) { closeFollowModal(); return; }
   var expert = pendingExpert;
   closeFollowModal();
+  var bg = await BalanceGuard.check(currentUser.uid);   // re-check at the moment of following
+  if (!bg.ok) { BalanceGuard.showBlock(bg); return; }
   document.getElementById('confirmFollowBtn').disabled = true;
 
   try {
@@ -533,8 +540,11 @@ async function stopCopying() {
 }
 
 // ── Follow / Stop (trading) ─────────────────────────────────────────────────
-function openFollowTraderModal(traderId, traderName) {
+async function openFollowTraderModal(traderId, traderName) {
   if (activeTraderId) { pToast('Stop your current copy first.','err'); return; }
+  if (!currentUser) return;
+  var bg = await BalanceGuard.check(currentUser.uid);
+  if (!bg.ok) { BalanceGuard.showBlock(bg); return; }
   pendingTrader = { id: traderId, name: traderName };
   document.getElementById('followTraderModalTitle').textContent = 'Follow '+traderName;
   document.getElementById('followTraderModal').style.display = 'flex';
@@ -548,6 +558,8 @@ async function confirmFollowTrader() {
   if (!pendingTrader || !currentUser) { closeFollowTraderModal(); return; }
   var trader = pendingTrader;
   closeFollowTraderModal();
+  var bg = await BalanceGuard.check(currentUser.uid);   // re-check at the moment of following
+  if (!bg.ok) { BalanceGuard.showBlock(bg); return; }
   document.getElementById('confirmFollowTraderBtn').disabled = true;
 
   try {
@@ -557,6 +569,7 @@ async function confirmFollowTrader() {
       userId:        currentUser.uid,
       traderId:      trader.id,
       status:        'active',
+      baseBalance:   bg.balance,   // risk is sized from this fixed amount; resets on every new follow
       startedAt:     firebase.firestore.FieldValue.serverTimestamp(),
       tradesToday:   existing.tradesToday || 0,
       lastResetDate: existing.lastResetDate || ''

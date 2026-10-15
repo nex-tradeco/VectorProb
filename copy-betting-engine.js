@@ -87,34 +87,38 @@
   }
 
   // ── Mirror a bet to the current signed-in user ─────────────────────────────
+  // Returns why: 'placed' | 'skip' (this market can never be bet on by this user: already
+  // bet, or its window closed) | 'cap' (daily limit) | 'funds' (balance too low) |
+  // 'no' (not following / not visible yet / not signed in) | 'error'.
+  // Only 'placed' and 'skip' use a market up; every other result leaves it available.
   async function mirrorBetToUser(market, side, expertId) {
     var currentUser = auth.currentUser;
-    if (!currentUser) return;
+    if (!currentUser) return 'no';
 
     var today = todayUTC();
     try {
       // Own copyBetting state is cached (5 min) so idle ticks cost zero reads
       var cb = await getCB(currentUser.uid);
-      if (!cb || cb.status !== 'active') return;
-      if (cb.expertId !== expertId) return; // following a different expert
+      if (!cb || cb.status !== 'active') return 'no';
+      if (cb.expertId !== expertId) return 'no'; // following a different expert
 
       // Reset daily count if new UTC day
       if (cb.lastResetDate !== today) {
         await db.collection('copyBetting').doc(currentUser.uid).update({ betsToday: 0, lastResetDate: today });
         cb.betsToday = 0; cb.lastResetDate = today;
       }
-      if (cb.betsToday >= (cb.maxBetsPerDay || 5)) return;
+      if (cb.betsToday >= (cb.maxBetsPerDay || 5)) return 'cap';
 
       // Read own balance
       var uSnap = await db.collection('users').doc(currentUser.uid).get();
-      if (!uSnap.exists) return;
+      if (!uSnap.exists) return 'no';
       var ud      = uSnap.data();
       var balance = ud.balance || 0;
       var stake   = Math.round(balance * ((cb.riskPercent || 10) / 100) * 100) / 100;
-      if (stake < 1 || stake > balance) return;
+      if (balance < 10 || stake < 1 || stake > balance) return 'funds';   // $10 minimum available balance
 
       // Never mirror a market that hasn't appeared for this user yet
-      if (!vpWindow.isVisible(ud.createdAt, market)) return;
+      if (!vpWindow.isVisible(ud.createdAt, market)) return 'no';
 
       // Never mirror the same market twice for this user — checked against
       // Firestore (not just in-memory), so it holds even across page reloads.
@@ -122,11 +126,11 @@
         .where('userId','==',currentUser.uid)
         .where('marketId','==',market.id)
         .limit(1).get();
-      if (!dupSnap.empty) return;
+      if (!dupSnap.empty) return 'skip';
 
       // Skip markets whose window has already closed for this user
       var resolveAt = computeResolveAt(ud.createdAt, market);
-      if (resolveAt && resolveAt.getTime() <= Date.now()) return;
+      if (resolveAt && resolveAt.getTime() <= Date.now()) return 'skip';
 
       var yesNow     = vpProb.now(market);   // computed locally, no read
       var entryProb  = side === 'YES' ? Math.round(yesNow) : Math.round(100 - yesNow);
@@ -172,20 +176,30 @@
       await batch.commit();
       cb.betsToday = (cb.betsToday || 0) + 1; cb.lastResetDate = today;
       console.log('[copy-betting] mirrored', side, '$'+stake, 'for', currentUser.uid, 'on market', market.id);
+      return 'placed';
     } catch(e) {
       console.warn('[copy-betting] mirrorBetToUser failed:', e.message);
+      return 'error';
     }
   }
 
   // ── Expert tick ────────────────────────────────────────────────────────────
   async function expertTick(expert) {
+    // An expert nobody follows must not use up markets: otherwise a page left open for a
+    // while has nothing left to bet on by the time you follow. (The follow state is cached
+    // for 5 min, so this costs at most one read per 5 min across all experts.)
+    var cu = auth.currentUser;
+    if (!cu) return;
+    var cb = await getCB(cu.uid);
+    if (!cb || cb.status !== 'active' || cb.expertId !== expert.id) return;
+
     if (!_expertBets[expert.id]) _expertBets[expert.id] = new Set();
     var uc = await vpWindow.getUserCreated();
     var market = pickMarket(expert, _expertBets[expert.id], uc);
     if (!market) return;
-    _expertBets[expert.id].add(market.id);
     var side = expertSide(expert, market.secret.resolutionBias);
-    await mirrorBetToUser(market, side, expert.id);
+    var res  = await mirrorBetToUser(market, side, expert.id);
+    if (res === 'placed' || res === 'skip') _expertBets[expert.id].add(market.id);
   }
 
   // ── Schedule each expert ───────────────────────────────────────────────────
@@ -278,13 +292,16 @@
         return !_expertBets[expertId].has(m.id) && m.secret && vpWindow.isVisible(uc, m);
       });
 
+      var placed = 0, stopReason = '';
       for (var i = 0; i < catchUp.length; i++) {
         var market = catchUp[i];
-        _expertBets[expertId].add(market.id);
         var side = expertSide(expert, market.secret.resolutionBias);
-        await mirrorBetToUser(market, side, expertId);
+        var res  = await mirrorBetToUser(market, side, expertId);
+        if (res === 'placed') { placed++; _expertBets[expertId].add(market.id); }
+        else if (res === 'skip') { _expertBets[expertId].add(market.id); }
+        else { stopReason = res; break; }   // cap / funds / no / error: no point trying the rest
       }
-      console.log('[copy-betting] catch-up placed', catchUp.length, 'bet(s) for', uid);
+      console.log('[copy-betting] catch-up placed', placed, 'of', catchUp.length, 'visible market(s) for', uid + (stopReason ? ' (stopped: ' + stopReason + ')' : ''));
     },
 
     refresh: async function () {

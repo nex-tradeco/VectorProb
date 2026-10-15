@@ -210,7 +210,7 @@
 
     <div class="trade-form-group">
       <label class="trade-form-label">Lot Size</label>
-      <input type="number" class="trade-form-input" id="lotSize" value="0.01" step="0.01" min="0.01" max="100" placeholder="0.01"/>
+      <input type="number" class="trade-form-input" id="lotSize" value="0.01" step="0.01" min="0.01" max="100" placeholder="0.01" oninput="updateMarginPreview()"/>
       <div class="trade-form-hint">1 lot = standard contract</div>
     </div>
 
@@ -228,6 +228,8 @@
     <div class="trade-preview-box">
       <div class="trade-preview-row"><span>Entry Price</span><span id="previewEntry">—</span></div>
       <div class="trade-preview-row"><span>Account Balance</span><span id="previewBalance">—</span></div>
+      <div class="trade-preview-row"><span>Required Margin</span><span id="previewMargin">—</span></div>
+      <div class="trade-preview-row"><span>Max Lot Size</span><span id="previewMaxLot">—</span></div>
     </div>
 
     <button class="trade-submit-btn buy" id="placeOrderBtn" onclick="placeTrade()">▲ Place BUY Order</button>
@@ -297,6 +299,9 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script src="user-cache.js"></script>
+<script src="copy-engines-boot.js"></script>
+<script src="balance-guard.js"></script>
 <script src="trading-engine.js"></script>
 <script>
 var currentUser = null, userData = null;
@@ -344,6 +349,25 @@ function updateBalanceDisplay() {
   if (b) b.textContent = fmtBal(userData.balance || 0);
   var p = document.getElementById('previewBalance');
   if (p) p.textContent = fmtBal(userData.balance || 0);
+  updateMarginPreview();
+}
+
+// Margin held by the user's open trades (refreshed whenever positions load)
+var _usedMargin = 0;
+
+// Shows the margin this order needs and the biggest lot the free balance allows.
+function updateMarginPreview() {
+  var rm = document.getElementById('previewMargin');
+  var ml = document.getElementById('previewMaxLot');
+  if (!rm || !ml || !userData) return;
+  var inst  = getInstrument(selectedSymbol);
+  var price = prices[selectedSymbol] || (inst && inst.defaultPrice) || 0;
+  var lot   = parseFloat(document.getElementById('lotSize').value) || 0;
+  var free  = Math.max(0, (userData.balance || 0) - _usedMargin);
+  var margin = requiredMargin(selectedSymbol, lot, price);
+  rm.textContent = fmtBal(margin) + ' (1:' + getLeverage(selectedSymbol) + ')';
+  rm.style.color = margin > free ? '#ff5c6c' : '';
+  ml.textContent = (Math.floor(maxLotForMargin(selectedSymbol, free, price) * 100) / 100).toFixed(2);
 }
 
 function onStopOutTriggered() {
@@ -402,6 +426,7 @@ function updatePriceDisplay(symbol) {
   document.getElementById('chartPrice').textContent   = fmtPrice(price, symbol);
   document.getElementById('orderPrice').textContent   = fmtPrice(price, symbol);
   document.getElementById('previewEntry').textContent = fmtPrice(price, symbol);
+  updateMarginPreview();
 }
 
 function filterCategory(cat, btn) {
@@ -457,7 +482,23 @@ async function placeTrade() {
   if (!isCryptoSymbol(selectedSymbol) && !isMarketOpen()) return showToast('Forex & Commodity markets are closed right now.', 'err');
   if (!lotSize || lotSize <= 0) return showToast('Enter a valid lot size.', 'err');
   if (!price) return showToast('Price not available.', 'err');
-  if ((userData && userData.balance || 0) <= 0) return showToast('Insufficient balance. Please deposit first.', 'err');
+  // Minimum $10 available balance (fresh server read)
+  var bg = await BalanceGuard.check(currentUser.uid);
+  if (!bg.ok) return BalanceGuard.showBlock(bg);
+  if (userData) userData.balance = bg.balance;
+
+  // Margin check: the lot size has to fit the free balance at this instrument's leverage
+  var openNow = await db.collection('trades').where('userId','==',currentUser.uid).where('status','==','open').get();
+  _usedMargin = usedMargin(openNow.docs.map(function(d){ return d.data(); }));
+  var margin  = requiredMargin(selectedSymbol, lotSize, price);
+  var freeMargin = (userData.balance || 0) - _usedMargin;
+  if (margin > freeMargin) {
+    var maxLot = Math.floor(maxLotForMargin(selectedSymbol, freeMargin, price) * 100) / 100;
+    updateMarginPreview();
+    return showToast('Not enough margin: this needs ' + fmtBal(margin) + ' at 1:' + getLeverage(selectedSymbol) +
+      ' but you have ' + fmtBal(Math.max(0, freeMargin)) + ' free. ' +
+      (maxLot >= 0.01 ? 'Max lot size: ' + maxLot.toFixed(2) + '.' : 'Deposit more or close a trade.'), 'err');
+  }
 
   var btn = document.getElementById('placeOrderBtn');
   var originalText = btn.textContent;
@@ -469,6 +510,7 @@ async function placeTrade() {
       symbol: selectedSymbol,
       type: tradeType,
       lotSize: lotSize,
+      margin: margin,
       entryPrice: price,
       stopLoss: stopLoss,
       takeProfit: takeProfit,
@@ -507,6 +549,8 @@ async function loadMiniPositions() {
 
   var stoppedOut = await checkStopOut(currentUser.uid, userData.balance, open, prices, onStopOutTriggered);
   if (stoppedOut) open = [];
+  _usedMargin = usedMargin(open);
+  updateMarginPreview();
 
   document.getElementById('posCount').textContent = open.length;
   var el = document.getElementById('miniPositions');
@@ -562,8 +606,7 @@ async function confirmTradeClose() {
   var d = _tradeCloseData;
   closeTradeModal();
   try {
-    await db.collection('trades').doc(d.id).update({ status:'closed', exitPrice:d.curPrc, profitLoss:d.pnl, closedAt:firebase.firestore.FieldValue.serverTimestamp(), closedBy:'user' });
-    await db.collection('users').doc(currentUser.uid).update({ balance: firebase.firestore.FieldValue.increment(d.pnl) });
+    await closeTradeAtomic(currentUser.uid, d.id, d.curPrc, d.pnl, 'user');
     userData.balance = (userData.balance||0) + d.pnl;
     updateBalanceDisplay();
     showToast('Position closed. P&L: ' + fmtBal(d.pnl), d.pnl >= 0 ? 'ok' : 'err');

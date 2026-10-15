@@ -298,6 +298,8 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script src="user-cache.js"></script>
+<script src="copy-engines-boot.js"></script>
 <script src="settlement-engine.js"></script>
 <script src="trading-engine.js"></script>
 <script>
@@ -354,11 +356,21 @@ async function runTradeChecks() {
 }
 
 auth.onAuthStateChanged(async function(user) {
-  if (!user) { window.location.href = 'login.html'; return; }
+  if (!user) { UserCache.clear(); window.location.href = 'login.html'; return; }
   portUser = user;
 
   try {
-    var snap = await db.collection('users').doc(user.uid).get();
+    // Start everything that only needs the uid at the same time
+    var userP = db.collection('users').doc(user.uid).get();
+    var kycP  = db.collection('kyc').doc(user.uid).get().catch(function(){ return null; });
+    var posP  = Promise.all([
+      db.collection('positions').where('userId','==',user.uid).get(),
+      db.collection('copyPositions').where('userId','==',user.uid).get(),
+      db.collection('trades').where('userId','==',user.uid).where('status','==','open').get()
+    ]);
+    posP.catch(function(){});   // avoid an unhandled-rejection warning if userP fails first
+
+    var snap = await userP;
 
     // Recovery: if doc missing, recreate it
     if (!snap.exists) {
@@ -374,23 +386,22 @@ auth.onAuthStateChanged(async function(user) {
 
     portUserData = snap.data() || {};
 
-    // Load KYC status
-    try {
-      var kycSnap = await db.collection('kyc').doc(user.uid).get();
-      kycApproved = kycSnap.exists && kycSnap.data().status === 'verified';
-    } catch(ke) { kycApproved = false; }
-
-    // Populate header and drawers
+    // Populate header and drawers (and refresh the instant-paint cache)
+    UserCache.save(user.uid, { profile: {
+      fullName: portUserData.fullName || '', accountId: portUserData.accountId || '', kycStatus: portUserData.kycStatus || ''
+    }});
     if (typeof populateHeader === 'function') populateHeader(portUserData);
     if (typeof populateMobileDrawer === 'function') populateMobileDrawer(portUserData);
     if (typeof populateDesktopDrawer === 'function') populateDesktopDrawer(portUserData);
 
-    // Load positions and populate portfolio
-    var [manSnap, cpSnap, otSnap] = await Promise.all([
-      db.collection('positions').where('userId','==',user.uid).get(),
-      db.collection('copyPositions').where('userId','==',user.uid).get(),
-      db.collection('trades').where('userId','==',user.uid).where('status','==','open').get()
-    ]);
+    // KYC status
+    var kycSnap = await kycP;
+    kycApproved = !!(kycSnap && kycSnap.exists && kycSnap.data().status === 'verified');
+    if (kycApproved) hideKycBlock();
+    _kycReadyRes();
+
+    // Positions
+    var [manSnap, cpSnap, otSnap] = await posP;
 
     allPositions = [
       ...manSnap.docs.map(function(d){ return Object.assign({id:d.id,_type:'manual'},d.data()); }),
@@ -399,22 +410,35 @@ auth.onAuthStateChanged(async function(user) {
       return ((b.createdAt&&b.createdAt.seconds)||0)-((a.createdAt&&a.createdAt.seconds)||0);
     });
     openTrades = otSnap.docs.map(function(d){ return Object.assign({id:d.id},d.data()); });
-    if (openTrades.length) { try { await loadLivePrices(tradePrices); } catch(e) { console.warn('Trade price load error:', e); } }
 
+    // Balance + chart paint NOW — they don't need live prices
     populateSummary(portUserData, allPositions);
     buildPnlChart(allPositions, 'r-1d');
-    await refreshPanels(allPositions);
-
-    // Update wdAvail with real balance
     var wdAvl = document.getElementById('wdAvail');
     if (wdAvl) wdAvl.textContent = pFmt(portUserData.balance||0);
+
+    // Live prices are only needed to render open-trade rows, so they come last
+    if (openTrades.length) { try { await loadLivePrices(tradePrices); } catch(e) { console.warn('Trade price load error:', e); } }
+    await refreshPanels(allPositions);
 
     // Background trade monitoring — TP/SL + stop-out, only if trades exist
     startTradeMonitoring();
 
   } catch(e) {
     console.warn('Portfolio auth error:', e);
+    if (typeof _kycReadyRes === 'function') _kycReadyRes();
   }
+});
+
+// Instant paint from the last-known values while Firebase is still loading.
+// Display only: the handler above replaces all of this with fresh data.
+document.addEventListener('DOMContentLoaded', function() {
+  var c = UserCache.readLast();
+  if (!c) return;
+  try {
+    if (c.profile && typeof populateHeader === 'function') populateHeader(c.profile);
+    if (c.summary) renderSummary(c.summary.balance, c.summary.portfolio, c.summary.pnl, c.summary.pnlPct);
+  } catch(e) { console.warn('Cache paint error:', e); }
 });
 </script>
 
@@ -540,6 +564,13 @@ function populateSummary(ud, positions) {
   var totalStakedEver = positions.reduce(function(s,p){return s+(p.stake||0);},0);
   var pnl        = totalWon - totalStakedEver;
   var pnlPct     = totalStakedEver > 0 ? ((pnl/totalStakedEver)*100).toFixed(1) : '0.0';
+
+  renderSummary(balance, portfolio, pnl, pnlPct);
+  if (portUser) UserCache.save(portUser.uid, { summary: { balance: balance, portfolio: portfolio, pnl: pnl, pnlPct: pnlPct } });
+}
+
+// Paints the balance card, header balance and tab bar. Used for both fresh and cached values.
+function renderSummary(balance, portfolio, pnl, pnlPct) {
   var pnlSign    = pnl >= 0 ? '+' : '';
 
   var spEl = document.getElementById('summaryPortfolio');
@@ -823,6 +854,8 @@ async function loadTradeHistory() {
 var walletData   = {};   // loaded from wallets/addresses
 var selectedCoin = 'BTC';
 var kycApproved  = false;
+var _kycReadyRes;
+var kycReady = new Promise(function(res){ _kycReadyRes = res; });   // resolves once the page has loaded KYC status
 
 var COIN_META = {
   BTC:  { label:'Bitcoin',  color:'#f7931a', icon:'<path d="M11.5 7H14a2.5 2.5 0 0 1 0 5H10m1.5-5V6m0 6v-1m0 1h3a2.5 2.5 0 0 1 0 5H10m1.5-4v-1m0 1V18m0-11V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' },
@@ -859,6 +892,30 @@ function showKycBlock(container) {
     + '<p style="font-size:13px;color:var(--text-dim);line-height:1.6;margin:0 0 10px;">You must complete and pass identity verification before making a deposit or withdrawal.</p>'
     + '<a href="kyc.html" style="display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:99px;background:var(--accent,#7c5cff);color:#fff;font-size:13px;font-weight:700;text-decoration:none;">Verify Identity →</a>';
   if (container) container.insertBefore(msg, container.firstChild);
+}
+
+function hideKycBlock() {
+  var m = document.getElementById('kycBlockMsg');
+  if (m) m.remove();
+}
+
+// Never tell someone they're unverified based on a status that hasn't loaded yet,
+// or one that went stale (e.g. they verified in another tab/page). Waits for the
+// initial load, then re-checks Firestore once before saying "not verified".
+async function ensureKycStatus() {
+  if (kycApproved) { hideKycBlock(); return true; }
+  await Promise.race([kycReady, new Promise(function(r){ setTimeout(r, 6000); })]);
+  if (!kycApproved) {
+    var u = portUser || auth.currentUser;
+    if (u) {
+      try {
+        var s = await db.collection('kyc').doc(u.uid).get({ source: 'server' });
+        kycApproved = !!(s.exists && s.data().status === 'verified');
+      } catch(e) { /* keep current value */ }
+    }
+  }
+  if (kycApproved) hideKycBlock();
+  return kycApproved;
 }
 
 // ── Coin card grid ──────────────────────────────────────────────────────────
@@ -934,7 +991,7 @@ function copyDepositAddr() {
 // ── Open crypto address modal ───────────────────────────────────────────────
 async function showCryptoAddresses(e) {
   e.preventDefault();
-  if (!kycApproved) {
+  if (!(await ensureKycStatus())) {
     var modal = document.querySelector('#deposit-modal .modal-box');
     showKycBlock(modal);
     return;
@@ -993,9 +1050,9 @@ async function submitTxHash() {
 }
 
 // ── Bank transfer — opens support chat ────────────────────────────────────────
-function openBankChat(e) {
+async function openBankChat(e) {
   e.preventDefault();
-  if (!kycApproved) {
+  if (!(await ensureKycStatus())) {
     var modal = document.querySelector('#deposit-modal .modal-box');
     showKycBlock(modal);
     return;
@@ -1029,7 +1086,7 @@ function closeWithdrawModal() {
 
 // ── Submit withdrawal — writes to transactions only ────────────────────────
 async function submitWithdraw() {
-  if (!kycApproved) {
+  if (!(await ensureKycStatus())) {
     closeWithdrawModal();
     pToast('Identity verification required before withdrawal. Go to KYC.', 'err');
     return;
@@ -1095,7 +1152,7 @@ document.addEventListener('click', function(e) {
 });
 </script>
 <script>
-function doLogout(){auth.signOut().then(function(){window.location.href='login.html';});}
+function doLogout(){UserCache.clear();auth.signOut().then(function(){window.location.href='login.html';});}
 function openKYC(){ window.location.href='kyc.html'; }
 function populateHeader(ud){var i=(ud.fullName||'U').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();var av=document.getElementById('headerAvatar');var pn=document.getElementById('panelName');var pa=document.getElementById('panelAccountId');var ge=document.getElementById('headerGuest');var ae=document.getElementById('headerAuth');if(av)av.textContent=i;if(pn)pn.textContent=ud.fullName||'User';if(pa)pa.textContent=ud.accountId||'';if(ge)ge.style.display='none';if(ae)ae.style.display='flex';
   if(typeof populateMobileDrawer==='function')populateMobileDrawer(ud);

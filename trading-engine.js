@@ -270,13 +270,78 @@ function isCryptoSymbol(symbol) {
   return INSTRUMENTS.crypto.some(function(i) { return i.symbol === symbol; });
 }
 
+// ============================================================
+// MARGIN & LEVERAGE
+// Leverage: forex 1:50, gold 1:20, other commodities 1:10, crypto 1:5.
+// Position value (USD) = lots x multiplier x price, using the same multiplier as calcPnL
+// (1 lot = 10,000 units for forex [100 for JPY pairs], 1 unit for crypto and commodities).
+// Margin = position value / leverage. A trade can only open if its margin fits in
+// free margin = balance - margin already used by the user's open trades.
+// ============================================================
+var LEVERAGE = { forex: 50, gold: 20, commodity: 10, crypto: 5 };
+
+function isCommoditySymbol(symbol) {
+  return INSTRUMENTS.commodities.some(function(i) { return i.symbol === symbol; });
+}
+
+function getLeverage(symbol) {
+  if (isCryptoSymbol(symbol))    return LEVERAGE.crypto;
+  if (symbol === 'XAU/USD')      return LEVERAGE.gold;
+  if (isCommoditySymbol(symbol)) return LEVERAGE.commodity;
+  return LEVERAGE.forex;
+}
+
+function lotMultiplier(symbol) {
+  if (isCryptoSymbol(symbol) || isCommoditySymbol(symbol)) return 1;
+  return symbol.indexOf('JPY') !== -1 ? 100 : 10000;
+}
+
+function requiredMargin(symbol, lotSize, price) {
+  return parseFloat((lotSize * lotMultiplier(symbol) * price / getLeverage(symbol)).toFixed(2));
+}
+
+// Sum of margin held by open trades (older trades without a saved margin are priced at entry).
+function usedMargin(openTrades) {
+  return openTrades.reduce(function(sum, t) {
+    var m = typeof t.margin === 'number' ? t.margin : requiredMargin(t.symbol, t.lotSize, t.entryPrice);
+    return sum + m;
+  }, 0);
+}
+
+// Largest lot (4 decimals, rounded down) whose margin fits in freeMargin.
+function maxLotForMargin(symbol, freeMargin, price) {
+  if (!price || freeMargin <= 0) return 0;
+  var raw = freeMargin * getLeverage(symbol) / (lotMultiplier(symbol) * price);
+  return Math.floor(raw * 10000) / 10000;
+}
+
 // ── START PRICE REFRESH ──
+// The refresher must only run once per page: it ticks the shared simulation state and calls
+// the price APIs, so a second copy would double the simulation speed and the API traffic.
+// Any later caller (e.g. a copy-trading engine started on a page that already refreshes
+// prices) just joins: it receives copies of the running refresher's prices and callbacks.
+var _refresher = null;   // { pricesObj, joined: [{ p, cb }] }
+
 function startPriceRefresh(pricesObj, onUpdate) {
-  loadLivePrices(pricesObj).then(function() { if (onUpdate) onUpdate(); });
+  if (_refresher) {
+    if (_refresher.pricesObj !== pricesObj) {
+      Object.assign(pricesObj, _refresher.pricesObj);
+      _refresher.joined.push({ p: pricesObj, cb: onUpdate });
+      if (onUpdate) onUpdate();
+    }
+    return;
+  }
+  _refresher = { pricesObj: pricesObj, joined: [] };
+  function notify() {
+    _refresher.joined.forEach(function(j) { Object.assign(j.p, pricesObj); if (j.cb) j.cb(); });
+    if (onUpdate) onUpdate();
+  }
+
+  loadLivePrices(pricesObj).then(function() { notify(); });
 
   // Crypto: real data every 60s — no market hours
   setInterval(function() {
-    fetchCryptoPrices(pricesObj).then(function() { if (onUpdate) onUpdate(); });
+    fetchCryptoPrices(pricesObj).then(function() { notify(); });
   }, 60000);
 
   // Forex seed refresh every 24 hours — only when market open
@@ -286,7 +351,7 @@ function startPriceRefresh(pricesObj, onUpdate) {
 
   // Commodity seed refresh every hour — only when market open
   setInterval(function() {
-    if (isMarketOpen()) loadCommodityPrices(pricesObj).then(function() { if (onUpdate) onUpdate(); });
+    if (isMarketOpen()) loadCommodityPrices(pricesObj).then(function() { notify(); });
   }, COMMODITY_TTL);
 
   // Simulation tick every 10s — pauses on weekends/after hours
@@ -325,7 +390,7 @@ function startPriceRefresh(pricesObj, onUpdate) {
       }
     });
     if (changed) {
-      if (onUpdate) onUpdate();
+      notify();
       _pendingForex = forexUpdate; _pendingCommod = commodUpdate;
       if (Date.now() - _lastSave >= SAVE_EVERY) flushPriceSave();
     }
@@ -346,6 +411,21 @@ function startPriceRefresh(pricesObj, onUpdate) {
   }, 60000);
 }
 
+// Closes one trade and applies its P&L to the balance in ONE atomic write. The Firestore rules
+// require the two together: a trade can only close if the balance moves by exactly its P&L, and a
+// balance increase must point (lastCredit) at the trade that earned it.
+async function closeTradeAtomic(uid, tradeId, exitPrice, pnl, reason) {
+  var batch = db.batch();
+  batch.update(db.collection('trades').doc(tradeId), {
+    status: 'closed', exitPrice: exitPrice, profitLoss: pnl,
+    closedAt: firebase.firestore.FieldValue.serverTimestamp(), closedBy: reason
+  });
+  var userUpdate = { balance: firebase.firestore.FieldValue.increment(pnl) };
+  if (pnl > 0) userUpdate.lastCredit = { col: 'trades', id: tradeId };
+  batch.update(db.collection('users').doc(uid), userUpdate);
+  await batch.commit();
+}
+
 // Close all open Forex + Commodity trades at market close (crypto unaffected).
 // Balance updates flow into the single shared users/{uid}.balance field.
 async function closeAllTradesForMarketClose() {
@@ -364,17 +444,11 @@ async function closeAllTradesForMarketClose() {
       if (FX_COMMODITY_SYMBOLS.indexOf(t.symbol) === -1) continue; // skip crypto
       var exitPrice = _simState[t.symbol] ? _simState[t.symbol].current : t.entryPrice;
       var pnl = calcPnL(t, exitPrice);
-      await db.collection('trades').doc(doc.id).update({
-        status: 'closed', exitPrice: exitPrice, profitLoss: pnl,
-        closedAt: firebase.firestore.FieldValue.serverTimestamp(), closedBy: 'market_close'
-      });
+      await closeTradeAtomic(user.uid, doc.id, exitPrice, pnl, 'market_close');
       totalPnL += pnl;
       closedCount++;
     }
     if (closedCount > 0) {
-      var userSnap = await db.collection('users').doc(user.uid).get();
-      var newBal   = (userSnap.data().balance || 0) + totalPnL;
-      await db.collection('users').doc(user.uid).update({ balance: newBal });
       if (typeof showToast === 'function') {
         var pnlStr = (totalPnL >= 0 ? '+' : '') + '$' + Math.abs(totalPnL).toFixed(2);
         showToast('Market closed — ' + closedCount + ' position' + (closedCount > 1 ? 's' : '') + ' closed. P&L: ' + pnlStr, totalPnL >= 0 ? 'success' : 'error');
@@ -424,11 +498,7 @@ async function checkTpSl(uid, openTrades, pricesObj) {
   for (var i=0; i<toClose.length; i++) {
     var item = toClose[i], t = item.trade;
     var pnl = calcPnL(t, item.price);
-    await db.collection('trades').doc(t.id).update({
-      status: 'closed', exitPrice: item.price, profitLoss: pnl,
-      closedAt: firebase.firestore.FieldValue.serverTimestamp(), closedBy: item.reason
-    });
-    await db.collection('users').doc(uid).update({ balance: firebase.firestore.FieldValue.increment(pnl) });
+    await closeTradeAtomic(uid, t.id, item.price, pnl, item.reason);
     closed.push({ trade:t, pnl:pnl, reason:item.reason });
   }
   return closed;
@@ -455,16 +525,19 @@ async function checkStopOut(uid, balance, openTrades, pricesObj, onStopOut) {
 
   _stoppingOut = true;
   try {
+    // One batch: every trade closes AND the balance goes to 0 together (the rules require it).
+    var soBatch = db.batch();
     for (var i = 0; i < openTrades.length; i++) {
       var t = openTrades[i];
       var exitPrice = pricesObj[t.symbol] || t.entryPrice;
       var pnl = calcPnL(t, exitPrice);
-      await db.collection('trades').doc(t.id).update({
+      soBatch.update(db.collection('trades').doc(t.id), {
         status: 'closed', exitPrice: exitPrice, profitLoss: pnl,
         closedAt: firebase.firestore.FieldValue.serverTimestamp(), closedBy: 'stopout'
       });
     }
-    await db.collection('users').doc(uid).update({ balance: 0 });
+    soBatch.update(db.collection('users').doc(uid), { balance: 0 });
+    await soBatch.commit();
     if (onStopOut) onStopOut();
     return true;
   } catch(e) {
