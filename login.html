@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>VectorProb — Sign In</title>
+  <title>VectorProb | Sign In</title>
   <link rel="stylesheet" href="style.css"/>
   <style>
     body { display:flex; align-items:center; justify-content:center; min-height:100vh; background:var(--bg); padding:20px; }
@@ -44,7 +44,7 @@
   </div>
 
   <div class="auth-title">Welcome back</div>
-  <div class="auth-sub">Sign in to your account to continue forecasting.</div>
+  <div class="auth-sub">Sign in to view your balance and open positions.</div>
 
   <div id="globalErr" class="form-error"></div>
 
@@ -154,7 +154,7 @@ async function doLogin() {
     } else if (e.code === 'auth/too-many-requests') {
       msg = 'Too many attempts. Please wait a moment and try again.';
     } else if (e.message && e.message.includes('permissions')) {
-      msg = 'Login error — please publish your Firestore rules and try again.';
+      msg = 'Login error. Please publish your Firestore rules and try again.';
     } else {
       msg = e.message || msg;
     }

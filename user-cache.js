@@ -1,5 +1,5 @@
 /*
- * user-cache.js — instant-paint cache for the signed-in user's header + balance.
+ * user-cache.js: instant-paint cache for the signed-in user's header + balance.
  *
  * DISPLAY ONLY. Firebase stays the source of truth. Pages paint whatever is in
  * here immediately, then overwrite it as soon as fresh data arrives from

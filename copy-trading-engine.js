@@ -1,15 +1,15 @@
 /**
- * copy-trading-engine.js — VectorProb Copy Trading Engine
+ * copy-trading-engine.js: VectorProb Copy Trading Engine
  *
  * Ten expert traders with hidden personalities, Forex and Commodities only
- * (never Crypto — those prices are real and unpredictable). Each trader
+ * (never Crypto: those prices are real and unpredictable). Each trader
  * fires on a per-trader timer, in pairs of up to 2 trades at a time, with
  * an interval between pairs derived from the FOLLOWING USER's own
  * copyMaxTrades setting (per-user config, set in admin.html's Copy Trading
- * Config tab — separate from Copy Betting's config). Re-read fresh on every
+ * Config tab: separate from Copy Betting's config). Re-read fresh on every
  * tick so admin changes take effect on the user's very next trade.
  * Users follow ONE trader at a time. Trades write to the same `trades`
- * collection as manual trading for the current signed-in user only — no
+ * collection as manual trading for the current signed-in user only, no
  * cross-user reads, respecting Firestore security rules. TP/SL closing and
  * stop-out are handled by trading-engine.js's existing checkTpSl/checkStopOut,
  * since copy trades are indistinguishable from manual ones once opened.
@@ -26,7 +26,7 @@
 
 (function () {
 
-  // ── Trader profiles — ported from NexTrade's COPY_TRADERS, Forex/Commodity only ──
+  // ── Trader profiles: ported from NexTrade's COPY_TRADERS, Forex/Commodity only ──
   var TRADERS = [
     { id:'trader_marcus',   name:'Marcus Elliot',     style:'Trend Following', wr:0.87, bias:{ 'EUR/USD':0.6, 'GBP/USD':0.5, 'USD/JPY':0.4 }, isAI:false },
     { id:'trader_lena',     name:'Lena Hartmann',     style:'Swing Trading',   wr:0.84, bias:{ 'EUR/GBP':0.6, 'USD/CHF':0.5, 'NZD/USD':0.4 }, isAI:false },
@@ -36,7 +36,7 @@
     { id:'trader_nexus',    name:'Nexus',             style:'Algorithmic',     wr:0.90, bias:{ 'EUR/USD':0.3, 'GBP/USD':0.3, 'USD/JPY':0.3, 'AUD/USD':0.3, 'USD/CAD':0.3, 'XAU/USD':0.3, 'XAG/USD':0.3, 'WTI/USD':0.3 }, isAI:true }
   ];
 
-  // SL distances tuned for a few minutes of simulated movement — Forex/Commodity only.
+  // SL distances tuned for a few minutes of simulated movement, Forex/Commodity only.
   var SL_DIST = {
     'EUR/USD': 0.00187, 'GBP/USD': 0.00240, 'USD/JPY': 0.173,
     'USD/CHF': 0.00173, 'AUD/USD': 0.00160, 'USD/CAD': 0.00173,
@@ -183,18 +183,18 @@
     return _ct.data;
   }
 
-  // ── Trader tick — checks the current user's own per-user config fresh each
+  // ── Trader tick: checks the current user's own per-user config fresh each
   // time (mirrors NexTrade's "re-read in case admin changed it" pattern), fires
   // a pair if there's headroom, and returns the delay to use for the next tick. ──
   async function traderTick(trader) {
     var currentUser = auth.currentUser;
-    if (!currentUser) return null; // nobody signed in — use default delay
+    if (!currentUser) return null; // nobody signed in, use default delay
 
     try {
       // Cached 5 min: idle ticks (not following this trader) cost zero reads
       var ct = await getCT(currentUser.uid);
       if (!ct || ct.status !== 'active' || ct.traderId !== trader.id) {
-        return null; // not following this trader — use default delay
+        return null; // not following this trader, use default delay
       }
       var today = todayUTC();
       if (ct.lastResetDate !== today) {
@@ -225,7 +225,7 @@
         for (var i = 0; i < toFire; i++) {
           await mirrorTradeToUser(trader, riskPct, rrRatio, baseBalance);
         }
-        _ct = null;   // tradesToday changed — re-read next tick
+        _ct = null;   // tradesToday changed, re-read next tick
       }
 
       var jitter = (Math.random() - 0.5) * pairInterval * 0.4;
@@ -273,7 +273,7 @@
     getTraders: function () { return TRADERS.map(function(t){ return { id:t.id, name:t.name, style:t.style, isAI:!!t.isAI }; }); },
 
     /**
-     * Call when user starts following a trader — fires one immediate pair
+     * Call when user starts following a trader, fires one immediate pair
      * so the account doesn't sit idle until the next scheduled tick.
      */
     userStartCopying: async function (uid, traderId) {

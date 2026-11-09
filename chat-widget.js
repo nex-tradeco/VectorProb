@@ -1,5 +1,5 @@
 /**
- * chat-widget.js — VectorProb Support Chat
+ * chat-widget.js: VectorProb Support Chat
  *
  * Floating chat button + panel, injected entirely by this script (pages just
  * need one <script src="chat-widget.js"> tag). Replaces Smartsupp.
@@ -16,9 +16,9 @@
 (function () {
 
   var QUICK_REPLIES = {
-    "How do I deposit?": "You can deposit via crypto from the Portfolio page. Go to Portfolio → Deposit → choose your coin, send funds, then submit the transaction reference for review.",
+    "How do I deposit?": "You can deposit via crypto from the Portfolio page. Go to Portfolio, then Deposit, then choose your coin, send funds, then submit the transaction reference for review.",
     "How long does KYC take?": "KYC is usually reviewed within 24 hours. You'll see your status update in the Account menu once it's done.",
-    "I need help with my account": "Sure — please describe your issue and our team will get back to you shortly."
+    "I need help with my account": "Sure, please describe your issue and our team will get back to you shortly."
   };
   var GENERIC_AUTO_REPLY = "Thanks for reaching out. Our team will respond shortly.";
 
@@ -55,7 +55,7 @@
     '.vpc-msg.other{align-self:flex-start;background:#1b1e27;color:#e7e9ee;border-bottom-left-radius:4px;}',
     '.vpc-msg-label{font-size:10px;font-weight:700;color:#9498a4;margin-bottom:3px;display:block;}',
     '.vpc-foot{border-top:1px solid #262a35;padding:12px;display:flex;gap:8px;flex-shrink:0;}',
-    '.vpc-input{flex:1;height:40px;padding:0 14px;border-radius:99px;background:#0a0b0f;border:1px solid #262a35;color:#fff;font-size:13.5px;font-family:inherit;outline:none;}',
+    '.vpc-input{flex:1;height:40px;padding:0 14px;border-radius:8px;background:#0a0b0f;border:1px solid #262a35;color:#fff;font-size:13.5px;font-family:inherit;outline:none;}',
     '.vpc-input:focus{border-color:#7c5cff;}',
     '.vpc-send{width:40px;height:40px;border-radius:50%;background:#7c5cff;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}',
     '.vpc-send svg{width:18px;height:18px;}'
@@ -232,7 +232,7 @@
       });
 
       // Bot answers a tapped chip, or acknowledges a custom FIRST message.
-      // Later typed messages get no bot reply — a human is in the loop by then.
+      // Later typed messages get no bot reply, a human is in the loop by then.
       var reply = null;
       if (isChip) reply = QUICK_REPLIES[text] || null;
       else if (isFirstMessage) reply = GENERIC_AUTO_REPLY;

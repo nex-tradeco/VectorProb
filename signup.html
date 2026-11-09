@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>VectorProb — Sign Up</title>
+  <title>VectorProb | Sign Up</title>
   <link rel="stylesheet" href="style.css"/>
   <style>
     body { display:flex; align-items:center; justify-content:center; min-height:100vh; background:var(--bg); padding:20px; }
@@ -48,7 +48,7 @@
   </div>
 
   <div class="auth-title">Create your account</div>
-  <div class="auth-sub">Join VectorProb and start forecasting real-world events.</div>
+  <div class="auth-sub">Bet on prediction markets, trade forex, commodities and crypto, or copy a top trader.</div>
 
   <div id="globalErr" class="form-error"></div>
 
@@ -134,12 +134,12 @@ auth.onAuthStateChanged(async function(user) {
     if (adminSnap.exists) { location.href = 'admin.html'; return; }
     var userSnap = await db.collection('users').doc(user.uid).get();
     if (userSnap.exists) { location.href = 'index.html'; }
-    // If no user doc: signup was interrupted — stay on page so they can try again
+    // If no user doc: signup was interrupted, stay on page so they can try again
   } catch(e) {}
 });
 
-// ── Generate account ID locally — no Firestore query needed ─────────────────
-// 8-char alphanumeric = 32^8 ≈ 1 trillion combinations — collision risk negligible
+// ── Generate account ID locally, no Firestore query needed ─────────────────
+// 8-char alphanumeric = 32^8 ≈ 1 trillion combinations, collision risk negligible
 function generateAccountId() {
   var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   var rand  = '';
@@ -173,11 +173,11 @@ async function doSignup() {
   _signingUp      = true;
 
   try {
-    // STEP 1 — Create Firebase Auth user
+    // STEP 1: Create Firebase Auth user
     var cred = await auth.createUserWithEmailAndPassword(email, pass);
     var uid  = cred.user.uid;
 
-    // STEP 2 — Write Firestore doc (no query — just a direct set)
+    // STEP 2: Write Firestore doc (no query: just a direct set)
     //          This is what was failing before: generateAccountId() did a
     //          cross-collection query which the rules block for unauthenticated users.
     //          Now we generate the ID locally and do a single direct write.
@@ -191,7 +191,7 @@ async function doSignup() {
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
-    // STEP 3 — Safe to redirect now that the doc exists
+    // STEP 3: Safe to redirect now that the doc exists
     _signingUp = false;
     location.href = 'index.html';
 
@@ -215,7 +215,7 @@ async function doSignup() {
     } else if (e.code === 'auth/weak-password') {
       msg = 'Password must be at least 6 characters.';
     } else if (e.message && e.message.includes('permissions')) {
-      msg = 'Setup error — please check your Firebase rules are published, then try again.';
+      msg = 'Setup error. Please check your Firebase rules are published, then try again.';
     }
 
     errEl.textContent = msg;

@@ -1,5 +1,5 @@
 /*
- * copy-engines-boot.js — keeps copy betting / copy trading running on every page.
+ * copy-engines-boot.js: keeps copy betting / copy trading running on every page.
  *
  * The engines are browser code, so they only run while a page is open. Instead of only
  * working on copytrade.html, this loader starts them on any page where the user is

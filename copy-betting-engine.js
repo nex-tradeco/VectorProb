@@ -1,17 +1,17 @@
 /**
- * copy-betting-engine.js — VectorProb Copy Betting Engine
+ * copy-betting-engine.js: VectorProb Copy Betting Engine
  *
  * Ten expert predictors with hidden personalities. Each expert fires
  * bets on a per-expert timer, betting correctly based on win rate vs
  * resolution bias. Users follow ONE expert at a time. Bets mirror to
- * copyPositions for the current signed-in user only — no cross-user
+ * copyPositions for the current signed-in user only, no cross-user
  * reads to respect Firestore security rules.
  *
  * Usage:
  *   copyBettingEngine.start()
  *   copyBettingEngine.stop()
  *   copyBettingEngine.getExperts()
- *   copyBettingEngine.userStartCopying(uid, expertId)  — catch-up on open markets
+ *   copyBettingEngine.userStartCopying(uid, expertId) : catch-up on open markets
  *   copyBettingEngine.refresh()
  */
 
@@ -30,7 +30,7 @@
   // ── State ─────────────────────────────────────────────────────────────────
   var _activeMarkets = [];   // [{id, category, secret, currentProbability}]
   var _expertTimers  = {};   // { expertId: timerHandle }
-  var _expertBets    = {};   // { expertId: Set<marketId> } — already bet on
+  var _expertBets    = {};   // { expertId: Set<marketId> }: already bet on
   var _started       = false;
 
   // ── Helpers ────────────────────────────────────────────────────────────────
@@ -39,7 +39,7 @@
     return d.getUTCFullYear()+'-'+(d.getUTCMonth()+1)+'-'+d.getUTCDate();
   }
 
-  // Pseudo-random seeded on time + expert — avoids all experts picking same market
+  // Pseudo-random seeded on time + expert, avoids all experts picking same market
   function seededRand(seed) {
     var s = (seed ^ 0xCAFEBABE) >>> 0;
     s = Math.imul(s ^ (s >>> 16), 0x45d9f3b) >>> 0;
@@ -53,7 +53,7 @@
     return r < expert.winRate ? resolutionBias : (resolutionBias === 'YES' ? 'NO' : 'YES');
   }
 
-  // Weighted market pick — prefers expert's categories (3× weight)
+  // Weighted market pick: prefers expert's categories (3× weight)
   function pickMarket(expert, alreadyBet, userCreated) {
     var available = _activeMarkets.filter(function(m) {
       // only markets that have already appeared for this user
@@ -120,7 +120,7 @@
       // Never mirror a market that hasn't appeared for this user yet
       if (!vpWindow.isVisible(ud.createdAt, market)) return 'no';
 
-      // Never mirror the same market twice for this user — checked against
+      // Never mirror the same market twice for this user, checked against
       // Firestore (not just in-memory), so it holds even across page reloads.
       var dupSnap = await db.collection('copyPositions')
         .where('userId','==',currentUser.uid)
@@ -276,7 +276,7 @@
     getExperts: function () { return EXPERTS.slice(); },
 
     /**
-     * Call when user starts following an expert — immediately places them
+     * Call when user starts following an expert, immediately places them
      * into all open markets the expert hasn't bet on yet.
      */
     invalidate: function () { _cb = null; },

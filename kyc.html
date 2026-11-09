@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>VectorProb — Identity Verification</title>
+  <title>VectorProb | Identity Verification</title>
   <link rel="stylesheet" href="style.css"/>
   <style>
     .kyc-page { max-width: 600px; margin: 0 auto; padding: 24px 16px 80px; }
@@ -101,7 +101,7 @@
 
     /* Submit btn */
     .kyc-submit-btn {
-      width:100%; height:48px; border-radius:99px;
+      width:100%; height:48px; border-radius:8px;
       background:var(--accent,#7c5cff); color:#fff;
       font-size:15px; font-weight:700; border:none; cursor:pointer;
       font-family:inherit; transition:opacity .15s;
@@ -148,7 +148,7 @@
 
     <div class="kyc-page-header">
       <h1>Identity Verification</h1>
-      <p>Verify your identity to unlock full platform features. Your data is encrypted and never shared.</p>
+      <p>Verify your identity to enable deposits and withdrawals. Your data is encrypted and never shared.</p>
     </div>
 
     <!-- Steps -->
@@ -187,7 +187,7 @@
       <div class="kyc-card">
         <div class="kyc-card-title">
           <svg style="width:15px;height:15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-          Step 1 — Select your ID type
+          Step 1: Select your ID type
         </div>
         <div class="kyc-card-sub">Choose the document you will upload below.</div>
         <div class="id-type-grid">
@@ -210,7 +210,7 @@
       <div class="kyc-card">
         <div class="kyc-card-title">
           <svg style="width:15px;height:15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          Step 2 — Upload document images
+          Step 2: Upload document images
         </div>
         <div class="kyc-card-sub">Upload clear photos of both sides. JPG or PNG, max 5MB each.</div>
 
@@ -241,10 +241,10 @@
         <div class="kyc-ok"  id="kycOk"></div>
 
         <button class="kyc-submit-btn" id="submitKycBtn" onclick="submitKyc()" disabled>
-          Submit for Verification →
+          Submit for Verification
         </button>
         <div style="text-align:center;margin-top:12px;">
-          <a href="index.html" style="font-size:12.5px;color:var(--text-dim);text-decoration:none;">Skip for now — verify later from your account menu</a>
+          <a href="index.html" style="font-size:12.5px;color:var(--text-dim);text-decoration:none;">Skip for now and verify later from your account menu</a>
         </div>
       </div>
 
@@ -268,8 +268,8 @@
           </div>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;">
-          <a href="index.html" style="display:inline-flex;align-items:center;height:42px;padding:0 20px;border-radius:99px;background:var(--accent,#7c5cff);color:#fff;font-size:14px;font-weight:700;text-decoration:none;">Go to Markets</a>
-          <button id="resubmitBtn" onclick="allowResubmit()" style="display:none;height:42px;padding:0 18px;border-radius:99px;background:none;border:1px solid var(--border);font-size:14px;font-weight:600;color:var(--text-dim);cursor:pointer;font-family:inherit;">Re-upload Documents</button>
+          <a href="index.html" style="display:inline-flex;align-items:center;height:42px;padding:0 20px;border-radius:8px;background:var(--accent,#7c5cff);color:#fff;font-size:14px;font-weight:700;text-decoration:none;">Go to Markets</a>
+          <button id="resubmitBtn" onclick="allowResubmit()" style="display:none;height:42px;padding:0 18px;border-radius:8px;background:none;border:1px solid var(--border);font-size:14px;font-weight:600;color:var(--text-dim);cursor:pointer;font-family:inherit;">Re-upload Documents</button>
         </div>
       </div>
     </div>
@@ -282,8 +282,8 @@
       </div>
       <ul class="kyc-tips">
         <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>All four corners of your ID must be visible.</li>
-        <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Good lighting — no glare or shadows.</li>
-        <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Text must be clearly readable — no blurry images.</li>
+        <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Good lighting, no glare or shadows.</li>
+        <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Text must be clearly readable, no blurry images.</li>
         <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Do not cover any part of the ID with your fingers.</li>
         <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Your data is encrypted and never shared with third parties.</li>
       </ul>
@@ -468,7 +468,7 @@ async function submitKyc() {
     if (status === 'verified') markStep3Done();
   } catch(e) {
     showKycErr('Submission failed: ' + e.message);
-    btn.disabled = false; btn.textContent = 'Submit for Verification →';
+    btn.disabled = false; btn.textContent = 'Submit for Verification';
   }
 }
 

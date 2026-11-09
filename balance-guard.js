@@ -1,5 +1,5 @@
 /*
- * balance-guard.js — minimum available balance for bets, trades and copy-follows.
+ * balance-guard.js: minimum available balance for bets, trades and copy-follows.
  *
  * Reads the balance fresh from Firestore (server) at the moment of the action, so a
  * stale page or a cached value can never let someone through (or wrongly block them).
@@ -50,8 +50,8 @@ var BalanceGuard = (function () {
         '<div id="bgTitle" style="font-size:17px;font-weight:800;color:var(--text,#fff);margin-bottom:8px;"></div>' +
         '<p id="bgBody" style="font-size:14px;line-height:1.6;color:var(--text-dim,#9498a4);margin:0 0 18px;"></p>' +
         '<div style="display:flex;gap:10px;">' +
-          '<a id="bgDeposit" href="portfolio.html#deposit-modal" style="flex:1;display:flex;align-items:center;justify-content:center;height:44px;border-radius:99px;background:var(--accent,#7c5cff);color:#fff;font-size:14px;font-weight:700;text-decoration:none;">Deposit</a>' +
-          '<button id="bgClose" type="button" style="flex:1;height:44px;border-radius:99px;background:none;border:1px solid var(--border,#2a2d36);color:var(--text,#fff);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;">Close</button>' +
+          '<a id="bgDeposit" href="portfolio.html#deposit-modal" style="flex:1;display:flex;align-items:center;justify-content:center;height:44px;border-radius:8px;background:var(--accent,#7c5cff);color:#fff;font-size:14px;font-weight:700;text-decoration:none;">Deposit</a>' +
+          '<button id="bgClose" type="button" style="flex:1;height:44px;border-radius:8px;background:none;border:1px solid var(--border,#2a2d36);color:var(--text,#fff);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;">Close</button>' +
         '</div>' +
       '</div>';
     el.addEventListener('click', function (e) { if (e.target === el) el.style.display = 'none'; });

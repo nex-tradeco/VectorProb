@@ -1,5 +1,5 @@
 /**
- * prediction-engine.js — PredictIQ Probability Simulation Engine
+ * prediction-engine.js: PredictIQ Probability Simulation Engine
  *
  * Runs in any signed-in user's browser. Reads marketSecrets for the
  * hidden resolution bias, then drifts currentProbability toward the
@@ -28,15 +28,15 @@
   var _callback     = null;   // fn(marketId, newProbability) called on each update
   var _lastSnapshot = 0;
 
-  // ── Seeded noise — avoids Math.random() correlation between markets ───────
+  // ── Seeded noise: avoids Math.random() correlation between markets ───────
   function noise(seed) {
     var x = Math.sin(seed + Date.now() * 0.0001) * 43758.5453;
     return (x - Math.floor(x)) * 2 - 1; // -1 to 1
   }
 
-  // ── Urgency — how strongly to drift toward target as deadline nears ───────
+  // ── Urgency: how strongly to drift toward target as deadline nears ───────
   // Anchored to (market creation date + admin-set resolution days), a single
-  // shared schedule — NOT the per-user "Closes" date shown on market-detail.html,
+  // shared schedule: NOT the per-user "Closes" date shown on market-detail.html,
   // since currentProbability is written once to marketLive and seen by everyone.
   function effectiveEndDate(m) {
     if (typeof m.resolutionDays === 'number' && m.createdAt) {
@@ -51,13 +51,13 @@
   function urgency(endDate) {
     if (!endDate) return 0.02;
     var total = endDate - new Date();
-    if (total <= 0) return 0.5;                          // past due — strong pull
+    if (total <= 0) return 0.5;                          // past due, strong pull
     var days  = total / 86400000;
-    if (days > 30)  return 0.005;                        // far away — very gentle
+    if (days > 30)  return 0.005;                        // far away, very gentle
     if (days > 7)   return 0.015;
     if (days > 1)   return 0.04;
     if (days > 0.1) return 0.12;
-    return 0.3;                                           // under 2.4 hours — strong
+    return 0.3;                                           // under 2.4 hours, strong
   }
 
   // ── Single market tick ────────────────────────────────────────────────────
@@ -66,10 +66,10 @@
     var target   = m.targetProbability;
     var current  = m.currentProbability;
 
-    // Drift component — pulls toward target
+    // Drift component: pulls toward target
     var drift    = (target - current) * u;
 
-    // Noise component — random walk, scaled down near limits
+    // Noise component: random walk, scaled down near limits
     var noiseMag = 1.5 * (1 - Math.abs(current - 50) / 50);
     var jitter   = noise(seedOffset) * noiseMag;
 
@@ -221,7 +221,7 @@
      */
     start: async function (callback) {
       if (_started) {
-        // Already running — just update callback if provided
+        // Already running: just update callback if provided
         if (callback) _callback = callback;
         return;
       }
@@ -246,11 +246,11 @@
     },
 
     /**
-     * Reload market list — call after admin creates a new market.
+     * Reload market list: call after admin creates a new market.
      */
     refresh: async function () {
       await loadMarkets();
-      console.log('[prediction-engine] refreshed —', _markets.length, 'markets');
+      console.log('[prediction-engine] refreshed:', _markets.length, 'markets');
     },
 
     /**

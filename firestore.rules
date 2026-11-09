@@ -178,7 +178,7 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // ── Trading — live price caches (Forex/Commodities) ─────────────────────
+    // ── Trading: live price caches (Forex/Commodities) ─────────────────────
     // Single docs: forexPrices/latest, commodityPrices/latest.
     // One client fetches from the external API and writes; everyone else reads.
     // Same shared-cache pattern as marketLive above.
@@ -228,7 +228,7 @@ service cloud.firestore {
     }
 
     // ── Trades (Forex/Commodities/Crypto) ───────────────────────────────────
-    // Same ownership pattern as positions — draws from and returns to the
+    // Same ownership pattern as positions, draws from and returns to the
     // single shared users/{uid}.balance field, not a separate trading balance.
     match /trades/{tradeId} {
       allow read:   if isSignedIn() &&
@@ -262,7 +262,7 @@ service cloud.firestore {
     }
 
     // ── Copy trading state (Forex/Commodity expert traders) ─────────────────
-    // Same shape as copyBetting above — a single doc per user, which is what
+    // Same shape as copyBetting above, a single doc per user, which is what
     // structurally enforces "only one active follow across both sections":
     // the unified copytrade.html checks both docs before allowing a new follow.
     match /copyTrading/{uid} {
@@ -294,7 +294,7 @@ service cloud.firestore {
     }
 
     // ── Wallets ───────────────────────────────────────────────────────────────
-    // Single doc: wallets/addresses — public read so deposit page can show addresses
+    // Single doc: wallets/addresses: public read so deposit page can show addresses
     match /wallets/{doc} {
       allow read:  if true;
       allow write: if isAdmin();
@@ -307,7 +307,7 @@ service cloud.firestore {
     }
 
     // ── Support chat ──────────────────────────────────────────────────────────
-    // chatId is always the participant's auth uid — real for signed-in users,
+    // chatId is always the participant's auth uid: real for signed-in users,
     // anonymous for guests (via signInAnonymously). This gives every user or
     // guest exactly one conversation thread, readable/writable by themselves
     // or an admin, with no cross-user access possible.

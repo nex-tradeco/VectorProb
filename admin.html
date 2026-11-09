@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>VectorProb — Admin</title>
+  <title>VectorProb | Admin</title>
   <link rel="stylesheet" href="style.css"/>
   <style>
     .admin-wrap { max-width:var(--container,1180px); margin:0 auto; padding:0 16px; }
@@ -24,7 +24,7 @@
     }
     .admin-user-info { font-size:13px; color:var(--text-dim); }
     .admin-signout {
-      padding:6px 16px; border-radius:99px; border:1px solid var(--border);
+      padding:6px 16px; border-radius:8px; border:1px solid var(--border);
       background:none; color:var(--text-dim); font-size:13px; font-weight:600;
       cursor:pointer; font-family:inherit; transition:border-color .15s, color .15s;
     }
@@ -75,7 +75,7 @@
     .s-badge.rejected { background:rgba(242,73,107,.13);  color:#f2496b; }
     .s-badge.resolved { background:rgba(124,92,255,.13);  color:var(--accent); }
     .a-btn {
-      padding:5px 12px; border-radius:99px; font-size:12px; font-weight:700;
+      padding:5px 12px; border-radius:8px; font-size:12px; font-weight:700;
       border:1px solid var(--border); background:none; color:var(--text-dim);
       cursor:pointer; font-family:inherit; transition:all .15s;
     }
@@ -115,7 +115,7 @@
     @keyframes spin { to { transform:rotate(360deg); } }
     .toast {
       position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(16px);
-      background:var(--surface); border:1px solid var(--border); border-radius:99px;
+      background:var(--surface); border:1px solid var(--border); border-radius:8px;
       padding:10px 20px; font-size:14px; font-weight:600; color:var(--text);
       z-index:500; opacity:0; transition:opacity .25s, transform .25s; white-space:nowrap;
     }
@@ -162,10 +162,10 @@
     <!-- OVERVIEW -->
     <div class="admin-panel active" id="panel-overview">
       <div class="stat-row">
-        <div class="stat-box"><div class="sv" id="ovUsers">—</div><div class="sl">Total Users</div></div>
-        <div class="stat-box"><div class="sv" id="ovMarkets">—</div><div class="sl">Active Markets</div></div>
-        <div class="stat-box"><div class="sv" id="ovDep">—</div><div class="sl">Pending Deposits</div></div>
-        <div class="stat-box"><div class="sv" id="ovWd">—</div><div class="sl">Pending Withdrawals</div></div>
+        <div class="stat-box"><div class="sv" id="ovUsers">-</div><div class="sl">Total Users</div></div>
+        <div class="stat-box"><div class="sv" id="ovMarkets">-</div><div class="sl">Active Markets</div></div>
+        <div class="stat-box"><div class="sv" id="ovDep">-</div><div class="sl">Pending Deposits</div></div>
+        <div class="stat-box"><div class="sv" id="ovWd">-</div><div class="sl">Pending Withdrawals</div></div>
       </div>
       <h3 style="font-size:14px;font-weight:700;color:var(--text-dim);margin-bottom:12px;">Recent Signups</h3>
       <div class="admin-table-wrap">
@@ -177,7 +177,7 @@
     <!-- MARKETS -->
     <div class="admin-panel" id="panel-markets">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-        <p style="font-size:13px;color:var(--text-dim);margin:0;">Create prediction markets — they settle automatically per user. Resolution bias is hidden from users.</p>
+        <p style="font-size:13px;color:var(--text-dim);margin:0;">Create prediction markets. They settle automatically per user. Resolution bias is hidden from users.</p>
         <button class="a-btn" style="background:var(--accent);color:#fff;border-color:var(--accent);" onclick="openCreateMarket()">+ Create Market</button>
       </div>
       <div class="admin-table-wrap">
@@ -229,7 +229,7 @@
           <!-- fields injected by JS -->
         </div>
         <div id="walletSaveMsg" style="display:none;font-size:13px;margin-top:12px;padding:10px 14px;border-radius:10px;"></div>
-        <button onclick="saveAllWallets()" style="margin-top:20px;width:100%;height:46px;border-radius:99px;background:var(--accent,#7c5cff);color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:inherit;">Save All Wallet Addresses</button>
+        <button onclick="saveAllWallets()" style="margin-top:20px;width:100%;height:46px;border-radius:8px;background:var(--accent,#7c5cff);color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:inherit;">Save All Wallet Addresses</button>
       </div>
     </div>
 
@@ -237,10 +237,10 @@
     <div class="admin-panel" id="panel-kyc">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
         <div style="display:flex;gap:8px;">
-          <button onclick="filterKyc('all')"     id="kycf-all"      style="padding:6px 14px;border-radius:99px;border:1px solid var(--border);background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">All</button>
-          <button onclick="filterKyc('pending')"  id="kycf-pending"  style="padding:6px 14px;border-radius:99px;border:1px solid var(--border);background:none;color:var(--text-dim);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Pending</button>
-          <button onclick="filterKyc('verified')" id="kycf-verified" style="padding:6px 14px;border-radius:99px;border:1px solid var(--border);background:none;color:var(--text-dim);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Verified</button>
-          <button onclick="filterKyc('rejected')" id="kycf-rejected" style="padding:6px 14px;border-radius:99px;border:1px solid var(--border);background:none;color:var(--text-dim);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Rejected</button>
+          <button onclick="filterKyc('all')"     id="kycf-all"      style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">All</button>
+          <button onclick="filterKyc('pending')"  id="kycf-pending"  style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text-dim);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Pending</button>
+          <button onclick="filterKyc('verified')" id="kycf-verified" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text-dim);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Verified</button>
+          <button onclick="filterKyc('rejected')" id="kycf-rejected" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text-dim);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Rejected</button>
         </div>
         <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-dim);cursor:pointer;">
           <span>Auto-verify</span>
@@ -271,8 +271,8 @@
     <!-- SUPPORT INBOX -->
     <div class="admin-panel" id="panel-support">
       <div style="display:flex;gap:8px;margin-bottom:16px;">
-        <button onclick="setSupportFilter('open')"   id="supf-open"   style="padding:6px 14px;border-radius:99px;border:1px solid var(--border);background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Open</button>
-        <button onclick="setSupportFilter('closed')" id="supf-closed" style="padding:6px 14px;border-radius:99px;border:1px solid var(--border);background:none;color:var(--text-dim);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Closed</button>
+        <button onclick="setSupportFilter('open')"   id="supf-open"   style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Open</button>
+        <button onclick="setSupportFilter('closed')" id="supf-closed" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text-dim);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Closed</button>
       </div>
       <div id="supportList" style="display:flex;flex-direction:column;gap:8px;"></div>
     </div>
@@ -285,8 +285,8 @@
   <div class="modal-box" style="max-width:540px;padding:0;display:flex;flex-direction:column;height:min(640px,88vh);overflow:hidden;">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid var(--border);flex-shrink:0;">
       <div style="min-width:0;">
-        <div id="chatModalName" style="font-size:16px;font-weight:800;color:var(--text);">—</div>
-        <div id="chatModalSub" style="font-size:12px;color:var(--text-faint);margin-top:3px;word-break:break-all;">—</div>
+        <div id="chatModalName" style="font-size:16px;font-weight:800;color:var(--text);">-</div>
+        <div id="chatModalSub" style="font-size:12px;color:var(--text-faint);margin-top:3px;word-break:break-all;">-</div>
       </div>
       <button onclick="closeChatThread()" style="background:none;border:none;cursor:pointer;color:var(--text-dim);padding:4px;line-height:0;flex-shrink:0;" aria-label="Close">
         <svg style="width:20px;height:20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
@@ -307,7 +307,7 @@
 <div class="modal-back" id="balModal">
   <div class="modal-box">
     <h3>Adjust Balance</h3>
-    <p style="font-size:13.5px;color:var(--text-dim);margin-bottom:16px;" id="balModalUser">—</p>
+    <p style="font-size:13.5px;color:var(--text-dim);margin-bottom:16px;" id="balModalUser">-</p>
     <div class="form-group">
       <label class="form-label">Amount (positive to add, negative to subtract)</label>
       <input class="form-input" id="balAmount" type="number" placeholder="e.g. 100 or -50"/>
@@ -341,7 +341,7 @@ function fmtCurrency(n) {
 }
 
 function fmtDate(ts) {
-  if (!ts) return '—';
+  if (!ts) return '-';
   var d = ts.toDate ? ts.toDate() : new Date(ts);
   return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
 }
@@ -377,7 +377,7 @@ async function loadOverview() {
     var recent = uSnap.docs.slice(0,8);
     document.getElementById('ovUsersBody').innerHTML = recent.map(function(d){
       var u = d.data();
-      return '<tr><td><strong>'+(u.fullName||'—')+'</strong></td><td>'+(u.email||'—')+'</td><td>'+(u.phone||'—')+'</td><td style="font-family:monospace;font-size:12px;">'+(u.accountId||'—')+'</td><td>'+fmtCurrency(u.balance)+'</td><td>'+fmtDate(u.createdAt)+'</td></tr>';
+      return '<tr><td><strong>'+(u.fullName||'-')+'</strong></td><td>'+(u.email||'-')+'</td><td>'+(u.phone||'-')+'</td><td style="font-family:monospace;font-size:12px;">'+(u.accountId||'-')+'</td><td>'+fmtCurrency(u.balance)+'</td><td>'+fmtDate(u.createdAt)+'</td></tr>';
     }).join('') || '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-dim);">No users yet.</td></tr>';
   } catch(e) {
     console.error('loadOverview error:', e);
@@ -389,7 +389,7 @@ async function loadUsers() {
   var snap = await db.collection('users').orderBy('createdAt','desc').get();
   document.getElementById('usersBody').innerHTML = snap.docs.map(function(d){
     var u = d.data();
-    return '<tr><td><strong>'+(u.fullName||'—')+'</strong></td><td>'+(u.email||'—')+'</td><td>'+(u.phone||'—')+'</td><td style="font-family:monospace;font-size:12px;">'+(u.accountId||'—')+'</td><td>'+fmtCurrency(u.balance)+'</td><td>'+fmtDate(u.createdAt)+'</td>'+
+    return '<tr><td><strong>'+(u.fullName||'-')+'</strong></td><td>'+(u.email||'-')+'</td><td>'+(u.phone||'-')+'</td><td style="font-family:monospace;font-size:12px;">'+(u.accountId||'-')+'</td><td>'+fmtCurrency(u.balance)+'</td><td>'+fmtDate(u.createdAt)+'</td>'+
       '<td><button class="a-btn" data-uid="'+d.id+'" data-name="'+(u.fullName||'User')+'" onclick="openBalModal(this.dataset.uid,this.dataset.name)">Adjust Balance</button></td></tr>';
   }).join('') || '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-dim);">No users.</td></tr>';
 }
@@ -424,12 +424,12 @@ async function loadDeposits() {
     document.getElementById('depsBody').innerHTML = deps.map(function(d){
       var dep = d.data(), u = umap[dep.userId]||{};
       var ref = dep.reference || dep.txid || '';
-      var txShort = ref ? (ref.slice(0,14)+(ref.length>14?'…':'')) : '—';
+      var txShort = ref ? (ref.slice(0,14)+(ref.length>14?'…':'')) : '-';
       var actions = dep.status === 'pending'
         ? '<button class="a-btn" data-id="'+d.id+'" data-uid="'+dep.userId+'" data-amt="'+(dep.amount||0)+'" onclick="approveDeposit(this.dataset.id,this.dataset.uid,parseFloat(this.dataset.amt))">Approve</button> '+
           '<button class="a-btn danger" data-id="'+d.id+'" onclick="rejectDeposit(this.dataset.id)">Reject</button>'
         : '<span style="font-size:12px;color:var(--text-dim);">'+dep.status+'</span>';
-      return '<tr><td><strong>'+(u.fullName||'—')+'</strong></td><td>'+fmtCurrency(dep.amount)+'</td><td>'+(dep.coin||'—')+'</td>'+
+      return '<tr><td><strong>'+(u.fullName||'-')+'</strong></td><td>'+fmtCurrency(dep.amount)+'</td><td>'+(dep.coin||'-')+'</td>'+
         '<td style="font-family:monospace;font-size:12px;" title="'+ref+'">'+txShort+'</td>'+
         '<td><span class="s-badge '+(dep.status||'pending')+'">'+(dep.status||'pending')+'</span></td>'+
         '<td>'+fmtDate(dep.createdAt)+'</td><td>'+actions+'</td></tr>';
@@ -469,8 +469,8 @@ async function loadWithdrawals() {
         ? '<button class="a-btn" data-id="'+d.id+'" onclick="approveWd(this.dataset.id)">Approve</button> '+
           '<button class="a-btn danger" data-id="'+d.id+'" onclick="rejectWd(this.dataset.id)">Reject</button>'
         : '<span style="font-size:12px;color:var(--text-dim);">'+wd.status+'</span>';
-      return '<tr><td><strong>'+(u.fullName||'—')+'</strong></td><td>'+fmtCurrency(wd.amount)+'</td><td>'+(wd.coin||'—')+'</td>'+
-        '<td style="font-family:monospace;font-size:12px;" title="'+(wd.address||'')+'">'+(addrShort||'—')+'</td>'+
+      return '<tr><td><strong>'+(u.fullName||'-')+'</strong></td><td>'+fmtCurrency(wd.amount)+'</td><td>'+(wd.coin||'-')+'</td>'+
+        '<td style="font-family:monospace;font-size:12px;" title="'+(wd.address||'')+'">'+(addrShort||'-')+'</td>'+
         '<td><span class="s-badge '+(wd.status||'pending')+'">'+(wd.status||'pending')+'</span></td>'+
         '<td>'+fmtDate(wd.createdAt)+'</td><td>'+actions+'</td></tr>';
     }).join('') || '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-dim);">No withdrawals.</td></tr>';
@@ -535,8 +535,8 @@ function renderKycTable() {
     var col          = statusColors[r.status]  || 'var(--text-dim)';
     var bg           = statusBg[r.status]      || 'transparent';
     var ts = r.submittedAt ? (r.submittedAt.toDate ? r.submittedAt.toDate() : new Date(r.submittedAt)) : null;
-    var dateStr = ts ? ts.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—';
-    var idLabel = {passport:'Passport','national-id':'National ID','drivers-license':"Driver's License"}[r.idType] || r.idType || '—';
+    var dateStr = ts ? ts.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '-';
+    var idLabel = {passport:'Passport','national-id':'National ID','drivers-license':"Driver's License"}[r.idType] || r.idType || '-';
     return '<tr>'+
       '<td style="font-family:monospace;font-size:12px;color:var(--text-dim);">'+r.uid.slice(0,14)+'…</td>'+
       '<td>'+idLabel+'</td>'+
@@ -544,8 +544,8 @@ function renderKycTable() {
       '<td><span style="padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700;background:'+bg+';color:'+col+';">'+r.status+'</span></td>'+
       '<td style="display:flex;gap:6px;align-items:center;">'+
         '<button onclick="openKycModal(\''+r.uid+'\')" style="height:30px;padding:0 10px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text);font-size:12px;cursor:pointer;font-family:inherit;">Review</button>'+
-        (r.status!=='verified' ? '<button onclick="quickKycStatus(\''+r.uid+'\',\'verified\')" style="height:30px;padding:0 10px;border-radius:8px;border:none;background:rgba(31,209,124,.12);color:#1fd17c;font-size:12px;cursor:pointer;font-family:inherit;">✓</button>' : '')+
-        (r.status!=='rejected' ? '<button onclick="quickKycStatus(\''+r.uid+'\',\'rejected\')" style="height:30px;padding:0 10px;border-radius:8px;border:none;background:rgba(242,73,107,.12);color:#f2496b;font-size:12px;cursor:pointer;font-family:inherit;">✗</button>' : '')+
+        (r.status!=='verified' ? '<button onclick="quickKycStatus(\''+r.uid+'\',\'verified\')" style="height:30px;padding:0 10px;border-radius:8px;border:none;background:rgba(31,209,124,.12);color:#1fd17c;font-size:12px;cursor:pointer;font-family:inherit;">Approve</button>' : '')+
+        (r.status!=='rejected' ? '<button onclick="quickKycStatus(\''+r.uid+'\',\'rejected\')" style="height:30px;padding:0 10px;border-radius:8px;border:none;background:rgba(242,73,107,.12);color:#f2496b;font-size:12px;cursor:pointer;font-family:inherit;">Reject</button>' : '')+
       '</td>'+
     '</tr>';
   }).join('');
@@ -569,7 +569,7 @@ function openKycModal(uid) {
   if (!r) return;
   _kycReviewUid = uid;
   document.getElementById('kycModalUser').textContent   = uid.slice(0,18)+'…';
-  document.getElementById('kycModalIdType').textContent = {passport:'Passport','national-id':'National ID','drivers-license':"Driver's License"}[r.idType]||r.idType||'—';
+  document.getElementById('kycModalIdType').textContent = {passport:'Passport','national-id':'National ID','drivers-license':"Driver's License"}[r.idType]||r.idType||'-';
   var statusColors = {pending:'#f2b341',verified:'#1fd17c',rejected:'#f2496b'};
   document.getElementById('kycModalStatus').innerHTML = '<span style="font-weight:700;color:'+(statusColors[r.status]||'var(--text)')+';">'+r.status+'</span>';
   document.getElementById('kycFrontImg').src  = r.frontImage||'';
@@ -627,7 +627,7 @@ async function loadCopyConfig() {
       var rr        = typeof u.copyRR        === 'number' ? u.copyRR        : 1;
       var risk      = typeof u.copyRisk      === 'number' ? u.copyRisk      : 10;
       return '<tr data-uid="'+d.id+'">'+
-        '<td><strong>'+(u.fullName||'—')+'</strong><br><span style="font-size:11px;color:var(--text-faint);">'+(u.email||'—')+'</span></td>'+
+        '<td><strong>'+(u.fullName||'-')+'</strong><br><span style="font-size:11px;color:var(--text-faint);">'+(u.email||'-')+'</span></td>'+
         '<td><input type="number" class="cc-maxtrades" min="2" max="50" step="2" value="'+maxTrades+'" style="width:80px;height:36px;padding:0 8px;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box;"></td>'+
         '<td><select class="cc-rr" style="height:36px;padding:0 8px;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box;">'+rrOptionsHtml(rr)+'</select></td>'+
         '<td><input type="number" class="cc-risk" min="1" max="100" step="1" value="'+risk+'" style="width:70px;height:36px;padding:0 8px;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box;"></td>'+
@@ -733,12 +733,12 @@ async function loadMarkets() {
       var vol  = tv >= 1000 ? '$'+((tv/1000).toFixed(1))+'K' : '$'+Math.round(tv);
       var ends = typeof m.resolutionDays === 'number'
         ? m.resolutionDays + ' day' + (m.resolutionDays===1?'':'s') + ' per user' + (m.showAfterDays ? ' (appears +' + m.showAfterDays + 'd)' : '')
-        : (m.resolutionDate ? (m.resolutionDate.toDate ? m.resolutionDate.toDate() : new Date(m.resolutionDate)).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—');
+        : (m.resolutionDate ? (m.resolutionDate.toDate ? m.resolutionDate.toDate() : new Date(m.resolutionDate)).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '-');
       var stCls = m.status==='active' ? 'active' : 'resolved';
-      var qShort = (m.question||'').length > 55 ? (m.question||'').slice(0,52)+'…' : (m.question||'—');
+      var qShort = (m.question||'').length > 55 ? (m.question||'').slice(0,52)+'…' : (m.question||'-');
       return '<tr>'+
         '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+(m.question||'')+'"><strong>'+qShort+'</strong></td>'+
-        '<td>'+(m.category||'—')+'</td>'+
+        '<td>'+(m.category||'-')+'</td>'+
         '<td style="font-family:monospace;color:var(--yes);">'+prob+'%</td>'+
         '<td style="font-family:monospace;">'+vol+'</td>'+
         '<td style="font-size:12px;color:var(--text-dim);">'+ends+'</td>'+
@@ -1007,7 +1007,7 @@ async function toggleChatStatus() {
   } catch(e) { showToast('Failed to update conversation: ' + e.message, 'err'); }
 }
 
-// Guard — must be admin
+// Guard: must be admin
 auth.onAuthStateChanged(async function(user) {
   if (!user) { location.href = 'login.html'; return; }
   try {
@@ -1021,7 +1021,7 @@ auth.onAuthStateChanged(async function(user) {
     loadOverview();
   } catch(e) {
     console.error('Admin auth failed:', e);
-    // Do not redirect on transient errors — show the shell so admin can retry
+    // Do not redirect on transient errors, show the shell so admin can retry
     document.getElementById('loader').style.display    = 'none';
     document.getElementById('adminShell').style.display = 'block';
   }
@@ -1061,15 +1061,15 @@ auth.onAuthStateChanged(async function(user) {
       <div style="font-size:12px;color:var(--text-faint);margin-top:-6px;">Each user's close date = later of their signup date or this market's creation date, plus this many days. Positions settle automatically.</div>
       <div><label style="font-size:13px;font-weight:600;color:var(--warn,#f2b341);display:block;margin-bottom:6px;">Resolution Bias (Hidden from users) *</label>
         <select id="cmBias" style="width:100%;height:44px;padding:0 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:inherit;outline:none;">
-          <option value="YES">YES — this market will resolve YES</option>
-          <option value="NO">NO — this market will resolve NO</option>
+          <option value="YES">YES: this market will resolve YES</option>
+          <option value="NO">NO: this market will resolve NO</option>
         </select></div>
       <div id="cmOutcomesWrap" style="display:none;">
         <label style="font-size:13px;font-weight:600;color:var(--text-dim);display:block;margin-bottom:6px;">Outcomes (one per line) *</label>
         <textarea id="cmOutcomes" rows="4" placeholder="Team A&#10;Team B&#10;Draw" style="width:100%;padding:10px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-family:inherit;outline:none;resize:vertical;box-sizing:border-box;"></textarea>
       </div>
       <div id="cmErr" style="font-size:13px;color:var(--no);display:none;padding:8px 12px;background:rgba(242,73,107,.08);border-radius:8px;"></div>
-      <button id="cmBtn" onclick="submitCreateMarket()" style="height:46px;border-radius:99px;background:var(--accent);color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:inherit;">Create Market</button>
+      <button id="cmBtn" onclick="submitCreateMarket()" style="height:46px;border-radius:8px;background:var(--accent);color:#fff;font-size:15px;font-weight:700;border:none;cursor:pointer;font-family:inherit;">Create Market</button>
     </div>
   </div>
 </div>
@@ -1084,7 +1084,7 @@ document.addEventListener('click', function(e) {
 function doLogout() {
   auth.signOut().then(function() { window.location.href = 'login.html'; });
 }
-// KYC — placeholder until third-party integration details provided
+// KYC: placeholder until third-party integration details provided
 function openKYC() {
   // TODO: replace with real KYC provider integration
   alert('KYC verification coming soon.');
@@ -1125,8 +1125,8 @@ function openKYC() {
     </div>
     <div id="kycModalErr" style="font-size:13px;color:#f2496b;display:none;margin-bottom:10px;"></div>
     <div style="display:flex;gap:10px;">
-      <button onclick="reviewKyc('rejected')" style="flex:1;height:44px;border-radius:99px;background:rgba(242,73,107,.1);color:#f2496b;border:1px solid rgba(242,73,107,.25);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">✗ Reject</button>
-      <button onclick="reviewKyc('verified')" style="flex:1;height:44px;border-radius:99px;background:rgba(31,209,124,.12);color:#1fd17c;border:1px solid rgba(31,209,124,.3);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">✓ Approve</button>
+      <button onclick="reviewKyc('rejected')" style="flex:1;height:44px;border-radius:8px;background:rgba(242,73,107,.1);color:#f2496b;border:1px solid rgba(242,73,107,.25);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Reject</button>
+      <button onclick="reviewKyc('verified')" style="flex:1;height:44px;border-radius:8px;background:rgba(31,209,124,.12);color:#1fd17c;border:1px solid rgba(31,209,124,.3);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Approve</button>
     </div>
   </div>
 </div>

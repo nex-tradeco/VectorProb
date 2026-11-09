@@ -1,7 +1,7 @@
 // ============================================================
-// VectorProb — Trading Engine
+// VectorProb | Trading Engine
 // Shared logic for Forex/Commodity/Crypto trading (trade.html).
-// Ported from NexTrade's firebase-config.js — instrument data,
+// Ported from NexTrade's firebase-config.js: instrument data,
 // live price feeds, PnL calculation and market-hours handling.
 // Assumes firebase-config.js (db, auth) is already loaded.
 // ============================================================
@@ -46,15 +46,15 @@ function getInstrument(symbol) {
 
 // ============================================================
 // LIVE PRICE FETCHING
-// Crypto     : CoinGecko    — direct to browser,     every 60 seconds (real)
-// Forex      : Frankfurter  — Firestore cache + SIM, seed every 24h, sim every 10s
-// Commodities: GoldAPI.io   — Firestore cache + SIM, seed hourly,   sim every 10s
+// Crypto     : CoinGecko   : direct to browser,     every 60 seconds (real)
+// Forex      : Frankfurter : Firestore cache + SIM, seed every 24h, sim every 10s
+// Commodities: GoldAPI.io  : Firestore cache + SIM, seed hourly,   sim every 10s
 // One user fetches and saves to Firestore; all others read from Firestore.
 // Simulation engine creates realistic trending price movement between fetches.
 // ============================================================
 
-var COMMODITY_TTL = 60 * 60 * 1000;   // 1 hour   — commodity fetch interval
-var SIM_TICK      = 10 * 1000;        // 10 sec   — simulation tick speed
+var COMMODITY_TTL = 60 * 60 * 1000;   // 1 hour: commodity fetch interval
+var SIM_TICK      = 10 * 1000;        // 10 sec: simulation tick speed
 var GOLD_API_KEY  = 'goldapi-a879adf4012e64507e836cb34c6bf9d2-io';
 
 var CRYPTO_SYMBOLS = {
@@ -69,7 +69,7 @@ var CRYPTO_SYMBOLS = {
 
 // ── SIMULATION ENGINE ──
 // Each instrument has a hidden daily bias and trend personality.
-// Prices drift in a direction, then reverse — like real markets.
+// Prices drift in a direction, then reverse, like real markets.
 var _simState = {};
 
 var SIM_RANGES = {
@@ -339,22 +339,22 @@ function startPriceRefresh(pricesObj, onUpdate) {
 
   loadLivePrices(pricesObj).then(function() { notify(); });
 
-  // Crypto: real data every 60s — no market hours
+  // Crypto: real data every 60s, no market hours
   setInterval(function() {
     fetchCryptoPrices(pricesObj).then(function() { notify(); });
   }, 60000);
 
-  // Forex seed refresh every 24 hours — only when market open
+  // Forex seed refresh every 24 hours, only when market open
   setInterval(function() {
     if (isMarketOpen()) loadForexPrices(pricesObj);
   }, 24 * 60 * 60 * 1000);
 
-  // Commodity seed refresh every hour — only when market open
+  // Commodity seed refresh every hour, only when market open
   setInterval(function() {
     if (isMarketOpen()) loadCommodityPrices(pricesObj).then(function() { notify(); });
   }, COMMODITY_TTL);
 
-  // Simulation tick every 10s — pauses on weekends/after hours
+  // Simulation tick every 10s, pauses on weekends/after hours
   // Shared price cache is saved at most once per 5 min (first save ~60s after load)
   // so an always-open tab uses ~576 writes/day instead of ~17,000.
   var SAVE_EVERY = 5 * 60 * 1000;
@@ -451,7 +451,7 @@ async function closeAllTradesForMarketClose() {
     if (closedCount > 0) {
       if (typeof showToast === 'function') {
         var pnlStr = (totalPnL >= 0 ? '+' : '') + '$' + Math.abs(totalPnL).toFixed(2);
-        showToast('Market closed — ' + closedCount + ' position' + (closedCount > 1 ? 's' : '') + ' closed. P&L: ' + pnlStr, totalPnL >= 0 ? 'success' : 'error');
+        showToast('Market closed: ' + closedCount + ' position' + (closedCount > 1 ? 's' : '') + ' closed. P&L: ' + pnlStr, totalPnL >= 0 ? 'success' : 'error');
       }
     }
   } catch(e) { console.error('Market close error:', e); }
@@ -509,7 +509,7 @@ async function checkTpSl(uid, openTrades, pricesObj) {
 // If equity (balance + unrealised P&L across all open trades) hits zero or
 // below, force-close every open trade at the current price, zero the shared
 // balance, and hand control back to the caller (which shows its own modal).
-// Only trading positions are touched — prediction bets already deducted
+// Only trading positions are touched, prediction bets already deducted
 // their stake upfront and carry no ongoing unrealised P&L, so they're left
 // alone entirely.
 // ============================================================

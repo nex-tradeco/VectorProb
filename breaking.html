@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VectorProb — Breaking</title>
+<title>VectorProb | Breaking</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -171,7 +171,7 @@ function setBreakingCat(btn) {
   renderBreaking();
 }
 
-// Spark SVG — generates a mini line from probability history points
+// Spark SVG: generates a mini line from probability history points
 function buildSpark(history, isUp) {
   if (!history || history.length < 2) {
     // Flat line fallback
@@ -229,7 +229,7 @@ function renderBreaking() {
     var prob   = Math.round(m.currentProbability || m.startingProbability || 50);
     var delta  = m.delta24h || 0;
     var isUp   = delta >= 0;
-    var deltaStr = (isUp ? '▲ ' : '▼ ') + Math.abs(delta).toFixed(0) + '%';
+    var deltaStr = (isUp ? '+' : '-') + Math.abs(delta).toFixed(0) + '%';
     var deltaClass = isUp ? 'up' : 'down';
     var spark  = buildSpark(m.recentHistory, isUp);
     return '<li class="breaking-row" onclick="location.href=\'market-detail.html?id=' + m.id + '\'" style="cursor:pointer;">' +
@@ -268,13 +268,13 @@ function handleGetUpdates(e) {
 function showBreakingToast(msg, type) {
   var t = document.createElement('div');
   t.textContent = msg;
-  t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:9px 20px;font-size:14px;font-weight:600;z-index:500;color:' + (type==='err'?'var(--no)':'var(--yes)') + ';';
+  t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 20px;font-size:14px;font-weight:600;z-index:500;color:' + (type==='err'?'var(--no)':'var(--yes)') + ';';
   document.body.appendChild(t);
   setTimeout(function(){ t.style.opacity='0';t.style.transition='opacity .3s'; }, 2400);
   setTimeout(function(){ t.remove(); }, 2800);
 }
 
-// Load markets from Firestore — sort by biggest absolute 24h movement
+// Load markets from Firestore, sort by biggest absolute 24h movement
 async function loadBreakingMarkets() {
   try {
     var marketsSnap = await db.collection('markets')
@@ -363,15 +363,15 @@ function populateHeader(ud){var i=(ud.fullName||'U').split(' ').map(function(w){
     </button>
   </div>
   <div id="mobileDrawerGuest">
-    <a href="login.html"  style="display:flex;align-items:center;justify-content:center;height:44px;border-radius:99px;border:1px solid var(--border);font-size:15px;font-weight:600;color:var(--text);text-decoration:none;margin-bottom:10px;">Sign In</a>
-    <a href="signup.html" style="display:flex;align-items:center;justify-content:center;height:44px;border-radius:99px;background:var(--accent,#7c5cff);font-size:15px;font-weight:600;color:#fff;text-decoration:none;">Sign Up</a>
+    <a href="login.html"  style="display:flex;align-items:center;justify-content:center;height:44px;border-radius:8px;border:1px solid var(--border);font-size:15px;font-weight:600;color:var(--text);text-decoration:none;margin-bottom:10px;">Sign In</a>
+    <a href="signup.html" style="display:flex;align-items:center;justify-content:center;height:44px;border-radius:8px;background:var(--accent,#7c5cff);font-size:15px;font-weight:600;color:#fff;text-decoration:none;">Sign Up</a>
   </div>
   <div id="mobileDrawerAuth" style="display:none;">
     <div id="mobileDrawerName" style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px;"></div>
     <div id="mobileDrawerAccountId" style="font-size:12px;color:var(--text-faint,#9498a4);font-family:monospace;margin-bottom:20px;word-break:break-all;"></div>
     <hr style="border:none;border-top:1px solid var(--border);margin:0 0 16px;">
-    <button id="mobileKycBtn" onclick="openKYC()" style="width:100%;height:44px;border-radius:99px;background:var(--accent-soft,rgba(124,92,255,.14));color:var(--accent,#7c5cff);border:1px solid rgba(124,92,255,.25);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;">Verify Identity (KYC)</button>
-    <button onclick="doLogout()" style="width:100%;height:44px;border-radius:99px;background:rgba(242,73,107,.1);color:#f2496b;border:1px solid rgba(242,73,107,.2);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Sign Out</button>
+    <button id="mobileKycBtn" onclick="openKYC()" style="width:100%;height:44px;border-radius:8px;background:var(--accent-soft,rgba(124,92,255,.14));color:var(--accent,#7c5cff);border:1px solid rgba(124,92,255,.25);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;">Verify Identity (KYC)</button>
+    <button onclick="doLogout()" style="width:100%;height:44px;border-radius:8px;background:rgba(242,73,107,.1);color:#f2496b;border:1px solid rgba(242,73,107,.2);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Sign Out</button>
   </div>
 </div>
 <!-- Desktop drawer: navigation -->
@@ -386,8 +386,8 @@ function populateHeader(ud){var i=(ud.fullName||'U').split(' ').map(function(w){
   <div id="desktopDrawerAuth" style="display:none;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border);">
     <div id="desktopDrawerName" style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:3px;"></div>
     <div id="desktopDrawerAccountId" style="font-size:12px;color:var(--text-faint,#9498a4);font-family:monospace;margin-bottom:14px;word-break:break-all;"></div>
-    <button id="desktopKycBtn" onclick="openKYC()" style="width:100%;height:38px;border-radius:99px;background:var(--accent-soft,rgba(124,92,255,.14));color:var(--accent,#7c5cff);border:1px solid rgba(124,92,255,.25);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;">Verify Identity (KYC)</button>
-    <button onclick="doLogout()" style="width:100%;height:38px;border-radius:99px;background:rgba(242,73,107,.1);color:#f2496b;border:1px solid rgba(242,73,107,.2);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Sign Out</button>
+    <button id="desktopKycBtn" onclick="openKYC()" style="width:100%;height:38px;border-radius:8px;background:var(--accent-soft,rgba(124,92,255,.14));color:var(--accent,#7c5cff);border:1px solid rgba(124,92,255,.25);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;">Verify Identity (KYC)</button>
+    <button onclick="doLogout()" style="width:100%;height:38px;border-radius:8px;background:rgba(242,73,107,.1);color:#f2496b;border:1px solid rgba(242,73,107,.2);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Sign Out</button>
   </div>
   <nav style="display:flex;flex-direction:column;gap:2px;">
     <a href="index.html"     style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;color:var(--text);text-decoration:none;font-size:15px;font-weight:600;" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='transparent'">
@@ -428,7 +428,7 @@ function populateMobileDrawer(ud){
   if(i)i.textContent=ud.accountId||'';
   if(kycBtn){
     if(ud.kycStatus==='verified'){
-      kycBtn.textContent='Identity Verified ✓';
+      kycBtn.textContent='Identity Verified';
       kycBtn.style.background='rgba(31,209,124,.12)';
       kycBtn.style.color='#1fd17c';
       kycBtn.style.borderColor='rgba(31,209,124,.3)';
@@ -454,7 +454,7 @@ function populateDesktopDrawer(ud){
   if(i)i.textContent=ud.accountId||'';
   if(kycBtn){
     if(ud.kycStatus==='verified'){
-      kycBtn.textContent='Identity Verified ✓';
+      kycBtn.textContent='Identity Verified';
       kycBtn.style.background='rgba(31,209,124,.12)';
       kycBtn.style.color='#1fd17c';
       kycBtn.style.borderColor='rgba(31,209,124,.3)';
@@ -470,7 +470,7 @@ function populateDesktopDrawer(ud){
     }
   }
 }
-// Dedicated auth watcher for mobile drawer — runs independently of other page auth handlers
+// Dedicated auth watcher for mobile drawer, runs independently of other page auth handlers
 auth.onAuthStateChanged(function(user){
   var g=document.getElementById('mobileDrawerGuest');
   var a=document.getElementById('mobileDrawerAuth');
@@ -479,7 +479,7 @@ auth.onAuthStateChanged(function(user){
     if(a)a.style.display='none';
     return;
   }
-  // User is signed in — fetch their Firestore doc and populate drawer
+  // User is signed in, fetch their Firestore doc and populate drawer
   db.collection('users').doc(user.uid).get().then(function(snap){
     var ud=snap.exists?snap.data():{fullName:user.displayName||user.email||'User',accountId:''};
     populateMobileDrawer(ud);

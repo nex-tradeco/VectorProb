@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>VectorProb — Market</title>
+  <title>VectorProb | Market</title>
   <link rel="stylesheet" href="style.css"/>
   <style>
     /* ── Page-level extras ── */
@@ -176,7 +176,7 @@
     /* Toast */
     .toast-msg {
       position:fixed; bottom:80px; left:50%; transform:translateX(-50%) translateY(16px);
-      background:var(--surface); border:1px solid var(--border); border-radius:99px;
+      background:var(--surface); border:1px solid var(--border); border-radius:8px;
       padding:9px 20px; font-size:14px; font-weight:600; color:var(--text);
       z-index:500; opacity:0; transition:opacity .25s, transform .25s; white-space:nowrap;
     }
@@ -227,30 +227,30 @@
   <div id="resolvedBanner" style="display:none;"></div>
 
   <!-- Title + meta -->
-  <h1 class="mkt-title" id="mktTitle">—</h1>
+  <h1 class="mkt-title" id="mktTitle">-</h1>
   <div class="mkt-meta">
     <span class="mkt-cat-pill" id="mktCatPill">
       <svg class="icon" id="mktCatIcon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/></svg>
-      <span id="mktCatLabel">—</span>
+      <span id="mktCatLabel">-</span>
     </span>
     <span class="countdown-chip" id="countdownChip">
       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg>
-      <span id="countdownLabel">—</span>
+      <span id="countdownLabel">-</span>
     </span>
   </div>
 
   <!-- Stats row -->
   <div class="mkt-stats">
     <div class="mkt-stat accent">
-      <div class="sv" id="statProb">—</div>
+      <div class="sv" id="statProb">-</div>
       <div class="sl" id="statProbLabel">YES probability</div>
     </div>
     <div class="mkt-stat">
-      <div class="sv" id="statVol">—</div>
+      <div class="sv" id="statVol">-</div>
       <div class="sl">Total volume</div>
     </div>
     <div class="mkt-stat">
-      <div class="sv" id="statEnds">—</div>
+      <div class="sv" id="statEnds">-</div>
       <div class="sl">Closes</div>
     </div>
   </div>
@@ -383,7 +383,7 @@ function showToast(msg, type) {
 
 // ── Countdown ──────────────────────────────────────────────────────────────
 function buildCountdown(resDate) {
-  if (!resDate) return { text:'—', urgent:false, ended:false };
+  if (!resDate) return { text:'-', urgent:false, ended:false };
   var end = resDate.toDate ? resDate.toDate() : new Date(resDate);
   var ms  = end - Date.now();
   if (ms <= 0) return { text:'Ended', urgent:true, ended:true };
@@ -458,7 +458,7 @@ function updateProbDisplay(prob) {
 
 function startProbRefresh() {
   if (probInterval) clearInterval(probInterval);
-  // Computed locally from the market id + clock — no Firestore reads
+  // Computed locally from the market id + clock, no Firestore reads
   probInterval = setInterval(function() {
     if (document.hidden || !market) return;
     updateProbDisplay(vpProb.now(market));
@@ -492,7 +492,7 @@ var CAT_ICONS = {
 
 // ── Render market ──────────────────────────────────────────────────────────
 function renderMarket(m) {
-  document.title = 'VectorProb — ' + (m.question || 'Market');
+  document.title = 'VectorProb | ' + (m.question || 'Market');
   document.getElementById('mktTitle').textContent = m.question || 'Untitled';
 
   // Category icon + label
@@ -510,7 +510,7 @@ function renderMarket(m) {
     var rb = document.getElementById('resolvedBanner');
     rb.className = 'resolved-banner ' + (m.resolvedOutcome||'no').toLowerCase();
     rb.style.display = 'flex';
-    rb.innerHTML = '<svg style="width:18px;height:18px;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="16 9 11 14 8 11.5"/></svg> This market has resolved — outcome: <strong style="margin-left:4px;">'+(m.resolvedOutcome||'')+'</strong>';
+    rb.innerHTML = '<svg style="width:18px;height:18px;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="16 9 11 14 8 11.5"/></svg> This market has resolved. Outcome: <strong style="margin-left:4px;">'+(m.resolvedOutcome||'')+'</strong>';
     document.getElementById('betPanel').style.display = 'none';
   }
 
@@ -637,7 +637,7 @@ async function placeBet(side) {
     // Update local balance display
     userData.balance = (userData.balance||0) - stake;
 
-    showToast(side+' bet placed — '+fmtBal(stake),'ok');
+    showToast(side+' bet placed: '+fmtBal(stake),'ok');
     document.getElementById('betAmount').value = '';
     document.getElementById('betResult').classList.remove('show');
 
@@ -670,11 +670,11 @@ async function loadMyPositions() {
   rows.sort(function(a,b){ return ((b.createdAt&&b.createdAt.seconds)||0)-((a.createdAt&&a.createdAt.seconds)||0); });
   document.getElementById('posList').innerHTML = rows.map(function(p){
     var sc = p.status==='won'?'won':p.status==='lost'?'lost':'open';
-    var payout = p.status==='won'?fmtBal(p.payoutAmount||0):p.status==='lost'?'—':fmtBal(p.potentialPayout||0)+'*';
-    var label  = p.outcome ? p.side+' — '+p.outcome : p.side;
+    var payout = p.status==='won'?fmtBal(p.payoutAmount||0):p.status==='lost'?'-':fmtBal(p.potentialPayout||0)+'*';
+    var label  = p.outcome ? p.side+': '+p.outcome : p.side;
     return '<div class="pos-row">'+
       '<span class="pos-side '+(p.side==='YES'?'yes':'no')+'">'+p.side+'</span>'+
-      '<div class="pos-info"><span class="pi-outcome">'+label+'</span><span class="pi-meta">Entry: '+(p.entryProbability||'—')+'% · '+fmtDate(p.createdAt)+'</span></div>'+
+      '<div class="pos-info"><span class="pi-outcome">'+label+'</span><span class="pi-meta">Entry: '+(p.entryProbability||'-')+'% · '+fmtDate(p.createdAt)+'</span></div>'+
       '<div class="pos-amounts">'+
         '<div class="pa-stake">'+fmtBal(p.stake||0)+'</div>'+
         '<div class="pa-payout" style="font-size:11px;color:var(--text-faint);">Payout: '+payout+'</div>'+
@@ -685,7 +685,7 @@ async function loadMyPositions() {
 }
 
 function fmtDate(ts) {
-  if (!ts) return '—';
+  if (!ts) return '-';
   var d = ts.toDate ? ts.toDate() : new Date(ts);
   return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
 }
@@ -803,15 +803,15 @@ function populateHeader(ud){var i=(ud.fullName||'U').split(' ').map(function(w){
     </button>
   </div>
   <div id="mobileDrawerGuest">
-    <a href="login.html"  style="display:flex;align-items:center;justify-content:center;height:44px;border-radius:99px;border:1px solid var(--border);font-size:15px;font-weight:600;color:var(--text);text-decoration:none;margin-bottom:10px;">Sign In</a>
-    <a href="signup.html" style="display:flex;align-items:center;justify-content:center;height:44px;border-radius:99px;background:var(--accent,#7c5cff);font-size:15px;font-weight:600;color:#fff;text-decoration:none;">Sign Up</a>
+    <a href="login.html"  style="display:flex;align-items:center;justify-content:center;height:44px;border-radius:8px;border:1px solid var(--border);font-size:15px;font-weight:600;color:var(--text);text-decoration:none;margin-bottom:10px;">Sign In</a>
+    <a href="signup.html" style="display:flex;align-items:center;justify-content:center;height:44px;border-radius:8px;background:var(--accent,#7c5cff);font-size:15px;font-weight:600;color:#fff;text-decoration:none;">Sign Up</a>
   </div>
   <div id="mobileDrawerAuth" style="display:none;">
     <div id="mobileDrawerName" style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px;"></div>
     <div id="mobileDrawerAccountId" style="font-size:12px;color:var(--text-faint,#9498a4);font-family:monospace;margin-bottom:20px;word-break:break-all;"></div>
     <hr style="border:none;border-top:1px solid var(--border);margin:0 0 16px;">
-    <button id="mobileKycBtn" onclick="openKYC()" style="width:100%;height:44px;border-radius:99px;background:var(--accent-soft,rgba(124,92,255,.14));color:var(--accent,#7c5cff);border:1px solid rgba(124,92,255,.25);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;">Verify Identity (KYC)</button>
-    <button onclick="doLogout()" style="width:100%;height:44px;border-radius:99px;background:rgba(242,73,107,.1);color:#f2496b;border:1px solid rgba(242,73,107,.2);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Sign Out</button>
+    <button id="mobileKycBtn" onclick="openKYC()" style="width:100%;height:44px;border-radius:8px;background:var(--accent-soft,rgba(124,92,255,.14));color:var(--accent,#7c5cff);border:1px solid rgba(124,92,255,.25);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;">Verify Identity (KYC)</button>
+    <button onclick="doLogout()" style="width:100%;height:44px;border-radius:8px;background:rgba(242,73,107,.1);color:#f2496b;border:1px solid rgba(242,73,107,.2);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Sign Out</button>
   </div>
 </div>
 <!-- Desktop drawer: navigation -->
@@ -826,8 +826,8 @@ function populateHeader(ud){var i=(ud.fullName||'U').split(' ').map(function(w){
   <div id="desktopDrawerAuth" style="display:none;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border);">
     <div id="desktopDrawerName" style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:3px;"></div>
     <div id="desktopDrawerAccountId" style="font-size:12px;color:var(--text-faint,#9498a4);font-family:monospace;margin-bottom:14px;word-break:break-all;"></div>
-    <button id="desktopKycBtn" onclick="openKYC()" style="width:100%;height:38px;border-radius:99px;background:var(--accent-soft,rgba(124,92,255,.14));color:var(--accent,#7c5cff);border:1px solid rgba(124,92,255,.25);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;">Verify Identity (KYC)</button>
-    <button onclick="doLogout()" style="width:100%;height:38px;border-radius:99px;background:rgba(242,73,107,.1);color:#f2496b;border:1px solid rgba(242,73,107,.2);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Sign Out</button>
+    <button id="desktopKycBtn" onclick="openKYC()" style="width:100%;height:38px;border-radius:8px;background:var(--accent-soft,rgba(124,92,255,.14));color:var(--accent,#7c5cff);border:1px solid rgba(124,92,255,.25);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;">Verify Identity (KYC)</button>
+    <button onclick="doLogout()" style="width:100%;height:38px;border-radius:8px;background:rgba(242,73,107,.1);color:#f2496b;border:1px solid rgba(242,73,107,.2);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Sign Out</button>
   </div>
   <nav style="display:flex;flex-direction:column;gap:2px;">
     <a href="index.html"     style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;color:var(--text);text-decoration:none;font-size:15px;font-weight:600;" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='transparent'">
@@ -868,7 +868,7 @@ function populateMobileDrawer(ud){
   if(i)i.textContent=ud.accountId||'';
   if(kycBtn){
     if(ud.kycStatus==='verified'){
-      kycBtn.textContent='Identity Verified ✓';
+      kycBtn.textContent='Identity Verified';
       kycBtn.style.background='rgba(31,209,124,.12)';
       kycBtn.style.color='#1fd17c';
       kycBtn.style.borderColor='rgba(31,209,124,.3)';
@@ -894,7 +894,7 @@ function populateDesktopDrawer(ud){
   if(i)i.textContent=ud.accountId||'';
   if(kycBtn){
     if(ud.kycStatus==='verified'){
-      kycBtn.textContent='Identity Verified ✓';
+      kycBtn.textContent='Identity Verified';
       kycBtn.style.background='rgba(31,209,124,.12)';
       kycBtn.style.color='#1fd17c';
       kycBtn.style.borderColor='rgba(31,209,124,.3)';
@@ -910,7 +910,7 @@ function populateDesktopDrawer(ud){
     }
   }
 }
-// Dedicated auth watcher for mobile drawer — runs independently of other page auth handlers
+// Dedicated auth watcher for mobile drawer, runs independently of other page auth handlers
 auth.onAuthStateChanged(function(user){
   var g=document.getElementById('mobileDrawerGuest');
   var a=document.getElementById('mobileDrawerAuth');
@@ -919,7 +919,7 @@ auth.onAuthStateChanged(function(user){
     if(a)a.style.display='none';
     return;
   }
-  // User is signed in — fetch their Firestore doc and populate drawer
+  // User is signed in, fetch their Firestore doc and populate drawer
   db.collection('users').doc(user.uid).get().then(function(snap){
     var ud=snap.exists?snap.data():{fullName:user.displayName||user.email||'User',accountId:''};
     populateMobileDrawer(ud);

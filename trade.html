@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>VectorProb — Trade</title>
+  <title>VectorProb | Trade</title>
   <link rel="stylesheet" href="style.css"/>
   <style>
     /* ── Page head ── */
@@ -20,7 +20,7 @@
     .category-tabs { display:flex; gap:8px; margin-bottom:14px; overflow-x:auto; scrollbar-width:none; }
     .category-tabs::-webkit-scrollbar { display:none; }
     .cat-tab {
-      flex-shrink:0; padding:7px 16px; border-radius:99px; border:1.5px solid var(--border);
+      flex-shrink:0; padding:7px 16px; border-radius:8px; border:1.5px solid var(--border);
       background:var(--surface-2); font-size:13px; font-weight:700; cursor:pointer;
       color:var(--text-dim); font-family:inherit; transition:all .15s;
     }
@@ -186,7 +186,7 @@
         <div class="chart-symbol" id="chartSymbol">EUR/USD</div>
         <div class="chart-sub" id="chartSub">Forex</div>
       </div>
-      <div class="chart-price" id="chartPrice">—</div>
+      <div class="chart-price" id="chartPrice">-</div>
     </div>
     <div id="tvWidgetContainer"></div>
   </div>
@@ -194,8 +194,8 @@
   <!-- Order form -->
   <div class="trade-panel">
     <div class="trade-tabs">
-      <button class="trade-tab buy active" id="tabBuy" onclick="setTradeType('BUY')">▲ BUY</button>
-      <button class="trade-tab sell" id="tabSell" onclick="setTradeType('SELL')">▼ SELL</button>
+      <button class="trade-tab buy active" id="tabBuy" onclick="setTradeType('BUY')">BUY</button>
+      <button class="trade-tab sell" id="tabSell" onclick="setTradeType('SELL')">SELL</button>
     </div>
 
     <div class="current-price-box">
@@ -203,7 +203,7 @@
         <div class="label" id="orderSymbolLabel">EUR/USD</div>
         <div class="sub" id="tradeTypeLabel">BUY ORDER</div>
       </div>
-      <div class="price" id="orderPrice">—</div>
+      <div class="price" id="orderPrice">-</div>
     </div>
 
     <div class="market-closed-note" id="marketClosedNote">Forex &amp; Commodity markets are closed until Sunday 10pm UTC. Crypto trades 24/7.</div>
@@ -226,13 +226,13 @@
     </div>
 
     <div class="trade-preview-box">
-      <div class="trade-preview-row"><span>Entry Price</span><span id="previewEntry">—</span></div>
-      <div class="trade-preview-row"><span>Account Balance</span><span id="previewBalance">—</span></div>
-      <div class="trade-preview-row"><span>Required Margin</span><span id="previewMargin">—</span></div>
-      <div class="trade-preview-row"><span>Max Lot Size</span><span id="previewMaxLot">—</span></div>
+      <div class="trade-preview-row"><span>Entry Price</span><span id="previewEntry">-</span></div>
+      <div class="trade-preview-row"><span>Account Balance</span><span id="previewBalance">-</span></div>
+      <div class="trade-preview-row"><span>Required Margin</span><span id="previewMargin">-</span></div>
+      <div class="trade-preview-row"><span>Max Lot Size</span><span id="previewMaxLot">-</span></div>
     </div>
 
-    <button class="trade-submit-btn buy" id="placeOrderBtn" onclick="placeTrade()">▲ Place BUY Order</button>
+    <button class="trade-submit-btn buy" id="placeOrderBtn" onclick="placeTrade()">Place BUY Order</button>
   </div>
 
   <!-- Open positions -->
@@ -468,7 +468,7 @@ function setTradeType(type) {
   document.getElementById('tabSell').classList.toggle('active', type === 'SELL');
   document.getElementById('tradeTypeLabel').textContent = type + ' ORDER';
   var btn = document.getElementById('placeOrderBtn');
-  btn.textContent = type === 'BUY' ? '▲ Place BUY Order' : '▼ Place SELL Order';
+  btn.textContent = type === 'BUY' ? 'Place BUY Order' : 'Place SELL Order';
   btn.className = 'trade-submit-btn ' + (type === 'BUY' ? 'buy' : 'sell');
   updateMarketBanner();
 }
@@ -521,7 +521,7 @@ async function placeTrade() {
       exitPrice: null,
       closedBy: null
     });
-    showToast(tradeType + ' order placed — ' + selectedSymbol + ' @ ' + fmtPrice(price, selectedSymbol), 'ok');
+    showToast(tradeType + ' order placed: ' + selectedSymbol + ' @ ' + fmtPrice(price, selectedSymbol), 'ok');
     document.getElementById('stopLoss').value   = '';
     document.getElementById('takeProfit').value = '';
     await loadMiniPositions();
@@ -560,8 +560,8 @@ async function loadMiniPositions() {
     var curPrc   = prices[t.symbol] || t.entryPrice;
     var pnl      = calcPnL(t, curPrc);
     var pnlClass = pnl >= 0 ? 'pos' : 'neg';
-    var tpLvl = t.takeProfit ? fmtPrice(t.takeProfit, t.symbol) : '—';
-    var slLvl = t.stopLoss   ? fmtPrice(t.stopLoss, t.symbol)   : '—';
+    var tpLvl = t.takeProfit ? fmtPrice(t.takeProfit, t.symbol) : '-';
+    var slLvl = t.stopLoss   ? fmtPrice(t.stopLoss, t.symbol)   : '-';
     return '<div>'+
       '<div class="mini-pos-row" data-tid="'+t.id+'" onclick="toggleMiniDetail(this.dataset.tid)">'+
         '<div class="mini-pos-left">'+
@@ -688,15 +688,15 @@ function openKYC(){ window.location.href='kyc.html'; }
     </button>
   </div>
   <div id="mobileDrawerGuest">
-    <a href="login.html"  style="display:flex;align-items:center;justify-content:center;height:44px;border-radius:99px;border:1px solid var(--border);font-size:15px;font-weight:600;color:var(--text);text-decoration:none;margin-bottom:10px;">Sign In</a>
-    <a href="signup.html" style="display:flex;align-items:center;justify-content:center;height:44px;border-radius:99px;background:var(--accent,#7c5cff);font-size:15px;font-weight:600;color:#fff;text-decoration:none;">Sign Up</a>
+    <a href="login.html"  style="display:flex;align-items:center;justify-content:center;height:44px;border-radius:8px;border:1px solid var(--border);font-size:15px;font-weight:600;color:var(--text);text-decoration:none;margin-bottom:10px;">Sign In</a>
+    <a href="signup.html" style="display:flex;align-items:center;justify-content:center;height:44px;border-radius:8px;background:var(--accent,#7c5cff);font-size:15px;font-weight:600;color:#fff;text-decoration:none;">Sign Up</a>
   </div>
   <div id="mobileDrawerAuth" style="display:none;">
     <div id="mobileDrawerName" style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px;"></div>
     <div id="mobileDrawerAccountId" style="font-size:12px;color:var(--text-faint,#9498a4);font-family:monospace;margin-bottom:20px;word-break:break-all;"></div>
     <hr style="border:none;border-top:1px solid var(--border);margin:0 0 16px;">
-    <button id="mobileKycBtn" onclick="openKYC()" style="width:100%;height:44px;border-radius:99px;background:var(--accent-soft,rgba(124,92,255,.14));color:var(--accent,#7c5cff);border:1px solid rgba(124,92,255,.25);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;">Verify Identity (KYC)</button>
-    <button onclick="doLogout()" style="width:100%;height:44px;border-radius:99px;background:rgba(242,73,107,.1);color:#f2496b;border:1px solid rgba(242,73,107,.2);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Sign Out</button>
+    <button id="mobileKycBtn" onclick="openKYC()" style="width:100%;height:44px;border-radius:8px;background:var(--accent-soft,rgba(124,92,255,.14));color:var(--accent,#7c5cff);border:1px solid rgba(124,92,255,.25);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;">Verify Identity (KYC)</button>
+    <button onclick="doLogout()" style="width:100%;height:44px;border-radius:8px;background:rgba(242,73,107,.1);color:#f2496b;border:1px solid rgba(242,73,107,.2);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Sign Out</button>
   </div>
 </div>
 <!-- Desktop drawer: navigation -->
@@ -711,8 +711,8 @@ function openKYC(){ window.location.href='kyc.html'; }
   <div id="desktopDrawerAuth" style="display:none;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border);">
     <div id="desktopDrawerName" style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:3px;"></div>
     <div id="desktopDrawerAccountId" style="font-size:12px;color:var(--text-faint,#9498a4);font-family:monospace;margin-bottom:14px;word-break:break-all;"></div>
-    <button id="desktopKycBtn" onclick="openKYC()" style="width:100%;height:38px;border-radius:99px;background:var(--accent-soft,rgba(124,92,255,.14));color:var(--accent,#7c5cff);border:1px solid rgba(124,92,255,.25);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;">Verify Identity (KYC)</button>
-    <button onclick="doLogout()" style="width:100%;height:38px;border-radius:99px;background:rgba(242,73,107,.1);color:#f2496b;border:1px solid rgba(242,73,107,.2);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Sign Out</button>
+    <button id="desktopKycBtn" onclick="openKYC()" style="width:100%;height:38px;border-radius:8px;background:var(--accent-soft,rgba(124,92,255,.14));color:var(--accent,#7c5cff);border:1px solid rgba(124,92,255,.25);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;">Verify Identity (KYC)</button>
+    <button onclick="doLogout()" style="width:100%;height:38px;border-radius:8px;background:rgba(242,73,107,.1);color:#f2496b;border:1px solid rgba(242,73,107,.2);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Sign Out</button>
   </div>
   <nav style="display:flex;flex-direction:column;gap:2px;">
     <a href="index.html"     style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;color:var(--text);text-decoration:none;font-size:15px;font-weight:600;" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='transparent'">
@@ -753,7 +753,7 @@ function populateMobileDrawer(ud){
   if(i)i.textContent=ud.accountId||'';
   if(kycBtn){
     if(ud.kycStatus==='verified'){
-      kycBtn.textContent='Identity Verified ✓';
+      kycBtn.textContent='Identity Verified';
       kycBtn.style.background='rgba(31,209,124,.12)';
       kycBtn.style.color='#1fd17c';
       kycBtn.style.borderColor='rgba(31,209,124,.3)';
@@ -779,7 +779,7 @@ function populateDesktopDrawer(ud){
   if(i)i.textContent=ud.accountId||'';
   if(kycBtn){
     if(ud.kycStatus==='verified'){
-      kycBtn.textContent='Identity Verified ✓';
+      kycBtn.textContent='Identity Verified';
       kycBtn.style.background='rgba(31,209,124,.12)';
       kycBtn.style.color='#1fd17c';
       kycBtn.style.borderColor='rgba(31,209,124,.3)';
@@ -795,7 +795,7 @@ function populateDesktopDrawer(ud){
     }
   }
 }
-// Dedicated auth watcher for mobile drawer — runs independently of other page auth handlers
+// Dedicated auth watcher for mobile drawer, runs independently of other page auth handlers
 auth.onAuthStateChanged(function(user){
   var g=document.getElementById('mobileDrawerGuest');
   var a=document.getElementById('mobileDrawerAuth');

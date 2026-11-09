@@ -1,10 +1,10 @@
 /**
- * probability.js — VectorProb displayed-probability generator (zero Firestore usage)
+ * probability.js: VectorProb displayed-probability generator (zero Firestore usage)
  *
  * The displayed YES probability is a deterministic, bounded (20–80%) wandering
  * value computed from the market id and the clock. Every user's browser computes
  * the same number, so nothing is stored or read. It has NO relationship to the
- * hidden resolution bias — purely cosmetic.
+ * hidden resolution bias: purely cosmetic.
  *
  *   vpProb.now(market)                → number (1 decimal)
  *   vpProb.at(market, ms)             → number at a given time
