@@ -1012,7 +1012,7 @@ auth.onAuthStateChanged(async function(user) {
   if (!user) { location.href = 'login.html'; return; }
   try {
     var snap = await db.collection('admins').doc(user.uid).get();
-    if (!snap.exists) { location.href = 'index.html'; return; }
+    if (!snap.exists) { location.href = 'markets.html'; return; }
     adminUser = user;
     document.getElementById('adminEmailLabel').textContent = user.email || '';
     startSupportInbox();

@@ -133,7 +133,7 @@ auth.onAuthStateChanged(async function(user) {
     var adminSnap = await db.collection('admins').doc(user.uid).get();
     if (adminSnap.exists) { location.href = 'admin.html'; return; }
     var userSnap = await db.collection('users').doc(user.uid).get();
-    if (userSnap.exists) { location.href = 'index.html'; }
+    if (userSnap.exists) { location.href = 'markets.html'; }
     // If no user doc: signup was interrupted, stay on page so they can try again
   } catch(e) {}
 });
@@ -193,7 +193,7 @@ async function doSignup() {
 
     // STEP 3: Safe to redirect now that the doc exists
     _signingUp = false;
-    location.href = 'index.html';
+    location.href = 'markets.html';
 
   } catch(e) {
     _signingUp      = false;

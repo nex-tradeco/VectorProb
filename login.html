@@ -88,7 +88,7 @@ auth.onAuthStateChanged(async function(user) {
     var adminSnap = await db.collection('admins').doc(user.uid).get();
     if (adminSnap.exists) { location.href = 'admin.html'; return; }
     var userSnap = await db.collection('users').doc(user.uid).get();
-    if (userSnap.exists) { location.href = 'index.html'; }
+    if (userSnap.exists) { location.href = 'markets.html'; }
   } catch(e) {}
 });
 
@@ -140,7 +140,7 @@ async function doLogin() {
       });
     }
 
-    location.href = 'index.html';
+    location.href = 'markets.html';
 
   } catch(e) {
     btn.disabled    = false;
