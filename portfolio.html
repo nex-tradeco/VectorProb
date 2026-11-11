@@ -849,7 +849,7 @@ async function loadTradeHistory() {
 // ── Deposit & Withdraw (NexTrade approach) ────────────────────────────────
 // Wallets stored at wallets/addresses (single doc, coin keys)
 // All transactions written to 'transactions' collection (type: deposit/withdrawal)
-// KYC must be verified before submit
+// Deposits are open to everyone. KYC (identity verification) is only required to withdraw.
 
 var walletData   = {};   // loaded from wallets/addresses
 var selectedCoin = 'BTC';
@@ -889,7 +889,7 @@ function showKycBlock(container) {
   msg.id = 'kycBlockMsg';
   msg.style.cssText = 'background:rgba(242,73,107,.08);border:1px solid rgba(242,73,107,.25);border-radius:12px;padding:14px 16px;margin-bottom:14px;';
   msg.innerHTML = '<div style="font-weight:700;color:#f2496b;margin-bottom:6px;">Identity Verification Required</div>'
-    + '<p style="font-size:13px;color:var(--text-dim);line-height:1.6;margin:0 0 10px;">You must complete and pass identity verification before making a deposit or withdrawal.</p>'
+    + '<p style="font-size:13px;color:var(--text-dim);line-height:1.6;margin:0 0 10px;">You must complete and pass identity verification before making a withdrawal.</p>'
     + '<a href="kyc.html" style="display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:8px;background:var(--accent,#7c5cff);color:#fff;font-size:13px;font-weight:700;text-decoration:none;">Verify Identity</a>';
   if (container) container.insertBefore(msg, container.firstChild);
 }
@@ -991,11 +991,6 @@ function copyDepositAddr() {
 // ── Open crypto address modal ───────────────────────────────────────────────
 async function showCryptoAddresses(e) {
   e.preventDefault();
-  if (!(await ensureKycStatus())) {
-    var modal = document.querySelector('#deposit-modal .modal-box');
-    showKycBlock(modal);
-    return;
-  }
   await loadWalletAddresses();
   var coins = Object.keys(walletData).filter(function(c){ return !!walletData[c]; });
   if (!coins.length) { pToast('No addresses configured yet. Contact support.', 'err'); return; }
@@ -1052,11 +1047,6 @@ async function submitTxHash() {
 // ── Bank transfer: opens support chat ────────────────────────────────────────
 async function openBankChat(e) {
   e.preventDefault();
-  if (!(await ensureKycStatus())) {
-    var modal = document.querySelector('#deposit-modal .modal-box');
-    showKycBlock(modal);
-    return;
-  }
   location.hash = '_close';
   setTimeout(function() {
     if (window.vpChat) {
@@ -1088,7 +1078,7 @@ function closeWithdrawModal() {
 async function submitWithdraw() {
   if (!(await ensureKycStatus())) {
     closeWithdrawModal();
-    pToast('Identity verification required before withdrawal. Go to KYC.', 'err');
+    pToast('Identity verification is required to withdraw. Use Verify Identity in the menu.', 'err');
     return;
   }
   var amount  = parseFloat(document.getElementById('wdAmount').value);
