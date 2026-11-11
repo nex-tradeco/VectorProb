@@ -3,8 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VectorProb | Prediction markets, trading and copy trading</title>
-<meta name="description" content="Bet YES or NO on real-world events, trade 20 forex, commodity and crypto instruments, or copy a top trader. One account, one balance.">
+<title>VectorProb | Bet on what happens next. Trade what moves.</title>
+<meta name="description" content="Prediction markets, forex, commodities, crypto and copy trading from one account and one balance.">
+<meta property="og:title" content="VectorProb">
+<meta property="og:description" content="Bet on what happens next. Trade what moves.">
+<meta property="og:image" content="images/og.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script>
 // Signed-in visitors go straight to the markets. Open this page with ?stay=1 to read it anyway.
@@ -13,133 +19,215 @@ try {
 } catch (e) {}
 </script>
 <style>
-  body { background: var(--bg); color: var(--text); font-family: var(--font-body); line-height: 1.55; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-body); line-height: 1.55; -webkit-font-smoothing: antialiased; }
   html { scroll-padding-top: 76px; }
-  .lp-wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+  .lp-wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
 
-  /* Buttons */
+  /* ---------- Buttons ---------- */
   .lp-btn {
-    display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 22px;
-    border-radius: 8px; border: 1px solid transparent; font-size: 15px; font-weight: 700; white-space: nowrap;
+    display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 0 26px;
+    border-radius: 8px; border: 1px solid transparent; font-size: 15.5px; font-weight: 700; white-space: nowrap;
+    transition: background .15s, border-color .15s, transform .15s;
   }
+  .lp-btn:hover { transform: translateY(-1px); }
   .lp-btn-sm { height: 38px; padding: 0 16px; font-size: 14px; }
   .lp-btn-primary { background: var(--accent); color: #fff; }
   .lp-btn-primary:hover { background: var(--accent-bright); }
-  .lp-btn-ghost { border-color: var(--border); color: var(--text); }
-  .lp-btn-ghost:hover { background: var(--surface); }
+  .lp-btn-ghost { border-color: #3a3e4b; color: var(--text); }
+  .lp-btn-ghost:hover { background: var(--surface); border-color: var(--text-dim); }
   .lp-btn-text { color: var(--text-dim); padding: 0 12px; }
-  .lp-btn-text:hover { color: var(--text); }
+  .lp-btn-text:hover { color: var(--text); transform: none; }
 
-  /* Nav */
+  /* ---------- Nav ---------- */
   .lp-nav { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--border-soft); }
   .lp-nav-row { display: flex; align-items: center; gap: 28px; height: 64px; }
-  .lp-links { display: flex; gap: 24px; font-size: 14.5px; font-weight: 600; color: var(--text-dim); }
+  .lp-links { display: flex; gap: 26px; font-size: 14.5px; font-weight: 600; color: var(--text-dim); }
   .lp-links a:hover { color: var(--text); }
   .lp-nav-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
 
-  /* Hero */
-  .lp-hero { padding: 72px 0 56px; }
-  .lp-hero-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 48px; align-items: center; }
-  .lp-h1 { font-family: var(--font-display); font-size: clamp(32px, 5vw, 50px); line-height: 1.1; font-weight: 800; letter-spacing: -.02em; }
-  .lp-lead { margin-top: 20px; font-size: 17px; color: var(--text-dim); max-width: 580px; }
-  .lp-cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+  /* ---------- Ticker ---------- */
+  .lp-ticker { display: none; height: 40px; overflow: hidden; background: #07080b; border-bottom: 1px solid var(--border-soft); }
+  .lp-ticker.on { display: flex; align-items: center; }
+  .lp-ticker-track { display: flex; white-space: nowrap; animation: lpTick 70s linear infinite; }
+  .lp-ticker:hover .lp-ticker-track { animation-play-state: paused; }
+  @keyframes lpTick { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .lp-tick { display: inline-flex; align-items: center; gap: 9px; padding: 0 24px; border-right: 1px solid var(--border-soft); font-size: 12.5px; }
+  .lp-tick b { font-weight: 700; color: var(--text); }
+  .lp-tick .p { font-family: var(--font-mono); color: var(--text-dim); }
+  .lp-tick .tag { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-faint); }
+  .up { color: var(--yes); font-weight: 700; }
+  .dn { color: var(--no); font-weight: 700; }
 
-  .lp-example { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px; }
-  .lp-tag { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-faint); }
-  .lp-example-q { margin: 8px 0 14px; font-weight: 700; font-size: 16px; line-height: 1.35; }
-  .lp-row { display: flex; justify-content: space-between; gap: 16px; padding: 11px 0; border-top: 1px solid var(--border-soft); font-size: 14.5px; color: var(--text-dim); }
-  .lp-row b { color: var(--text); font-variant-numeric: tabular-nums; }
-  .lp-row.total { color: var(--text); font-weight: 700; }
-  .lp-row.total b { color: var(--yes); }
-  .lp-note { margin-top: 10px; font-size: 13px; color: var(--text-faint); }
+  /* ---------- Shared type ---------- */
+  .lp-eyebrow { font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: var(--accent-bright); }
+  .lp-h2 { margin-top: 10px; font-family: var(--font-display); font-size: clamp(28px, 4vw, 42px); line-height: 1.12; font-weight: 800; letter-spacing: -.015em; }
+  .lp-sub { margin-top: 12px; max-width: 600px; font-size: 17px; color: var(--text-dim); }
+  .lp-head { max-width: 720px; }
+  .lp-head.center { margin: 0 auto; text-align: center; }
+  .lp-head.center .lp-sub { margin-left: auto; margin-right: auto; }
+  .lp-section { padding: 88px 0; }
+  .lp-link { display: inline-block; margin-top: 16px; font-weight: 700; font-size: 14.5px; color: var(--accent-bright); }
+  .lp-link:hover { color: #fff; }
 
-  .lp-stats { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 56px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
-  .lp-stat { padding: 20px 22px; border-right: 1px solid var(--border-soft); }
-  .lp-stat:last-child { border-right: 0; }
-  .lp-stat b { display: block; font-family: var(--font-display); font-size: 28px; line-height: 1.2; }
-  .lp-stat span { font-size: 13.5px; color: var(--text-dim); }
+  /* ---------- Image frames (fall back to a solid block if the file is missing) ---------- */
+  .lp-media { position: relative; overflow: hidden; background: var(--surface-2); border: 1px solid var(--border); border-radius: 16px; }
+  .lp-media img { width: 100%; height: 100%; object-fit: cover; }
 
-  /* Sections */
-  .lp-section { padding: 68px 0; border-top: 1px solid var(--border-soft); }
-  .lp-h2 { font-family: var(--font-display); font-size: clamp(24px, 3.4vw, 34px); line-height: 1.2; font-weight: 800; letter-spacing: -.01em; }
-  .lp-sub { margin-top: 10px; max-width: 640px; font-size: 16px; color: var(--text-dim); }
-  .lp-more { display: inline-block; margin-top: 24px; font-weight: 700; font-size: 14.5px; color: var(--accent-bright); }
+  /* ---------- Hero ---------- */
+  .lp-hero { padding: 72px 0 88px; overflow-x: clip; }
+  .lp-hero-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px; align-items: center; }
+  .lp-h1 { margin-top: 14px; font-family: var(--font-display); font-size: clamp(40px, 6.4vw, 76px); line-height: 1.02; font-weight: 800; letter-spacing: -.03em; }
+  .lp-h1 span { color: var(--accent-bright); }
+  .lp-lead { margin-top: 22px; max-width: 520px; font-size: 19px; color: var(--text-dim); }
+  .lp-cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+  .lp-points { display: flex; flex-wrap: wrap; gap: 10px 26px; margin-top: 30px; font-size: 14px; font-weight: 600; color: var(--text-dim); }
+  .lp-points li { display: flex; align-items: center; gap: 8px; }
+  .lp-points svg { width: 16px; height: 16px; color: var(--yes); }
 
-  .lp-grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 32px; }
-  .lp-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; }
-  .lp-icon { width: 40px; height: 40px; border-radius: 8px; background: var(--accent-soft); color: var(--accent-bright); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
-  .lp-icon svg { width: 22px; height: 22px; }
-  .lp-card h3 { font-family: var(--font-display); font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-  .lp-card p { color: var(--text-dim); font-size: 15px; flex: 1; }
-  .lp-card .lp-more { margin-top: 16px; }
+  .lp-hero-media { position: relative; }
+  .lp-hero-img { aspect-ratio: 4 / 5; border-radius: 20px; }
+  .lp-float { position: absolute; z-index: 2; background: rgba(21, 23, 30, .96); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; box-shadow: var(--shadow-1); }
+  .lp-float[hidden] { display: none; }
+  .lp-float-market { left: -36px; bottom: 36px; width: 270px; }
+  .lp-float-price { right: -20px; top: 32px; min-width: 190px; }
+  .lp-float .tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-faint); }
+  .lp-float .q { margin: 6px 0 10px; font-size: 14px; font-weight: 700; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .lp-float .big { margin-top: 4px; font-family: var(--font-mono); font-size: 22px; font-weight: 500; }
+  .lp-float .sym { font-weight: 700; font-size: 14px; }
 
-  /* Live markets */
-  .lp-mkts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 32px; }
-  .lp-mkt { display: flex; flex-direction: column; gap: 12px; min-height: 160px; padding: 18px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
-  .lp-mkt:hover { border-color: var(--accent); }
-  .lp-mkt-cat { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-faint); }
-  .lp-mkt-q { flex: 1; font-size: 15.5px; font-weight: 700; line-height: 1.35; }
+  /* ---------- Market bars (shared) ---------- */
   .lp-bar { height: 6px; border-radius: 2px; background: var(--no-bg); overflow: hidden; }
   .lp-bar i { display: block; height: 100%; background: var(--yes); }
-  .lp-mkt-nums { display: flex; justify-content: space-between; font-size: 13.5px; font-weight: 700; }
-  .lp-mkt-nums .y { color: var(--yes); }
-  .lp-mkt-nums .n { color: var(--no); }
+  .lp-nums { display: flex; justify-content: space-between; margin-top: 8px; font-size: 13px; font-weight: 700; }
+  .lp-nums .y { color: var(--yes); }
+  .lp-nums .n { color: var(--no); }
+
+  /* ---------- Three ways to play ---------- */
+  .lp-play { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 44px; }
+  .lp-play-card { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: transform .15s, border-color .15s; }
+  .lp-play-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+  .lp-play-card .lp-media { aspect-ratio: 16 / 10; border: 0; border-radius: 0; }
+  .lp-play-body { padding: 22px 24px 26px; display: flex; flex-direction: column; flex: 1; }
+  .lp-play-body .tag { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--accent-bright); }
+  .lp-play-body h3 { margin: 8px 0; font-family: var(--font-display); font-size: 25px; font-weight: 700; letter-spacing: -.01em; }
+  .lp-play-body p { flex: 1; font-size: 15.5px; color: var(--text-dim); }
+  .lp-payout { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; margin-top: 24px; padding: 18px 22px; background: var(--accent-soft); border: 1px solid #3b3270; border-radius: 12px; font-size: 16px; font-weight: 600; }
+  .lp-payout b { color: var(--yes); }
+  .lp-payout a { font-size: 14.5px; font-weight: 700; color: var(--accent-bright); }
+
+  /* ---------- Live markets ---------- */
+  .lp-markets { background: var(--bg-soft); border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); }
+  .lp-mkts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 40px; }
+  .lp-mkt { display: flex; flex-direction: column; gap: 14px; min-height: 176px; padding: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; transition: transform .15s, border-color .15s; }
+  .lp-mkt:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .lp-mkt-cat { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-faint); }
+  .lp-mkt-q { flex: 1; font-size: 16px; font-weight: 700; line-height: 1.35; }
   .lp-mkt-vol { font-size: 12.5px; color: var(--text-faint); }
-  .lp-status { margin-top: 32px; color: var(--text-dim); font-size: 15px; }
+  .lp-status { margin-top: 32px; color: var(--text-dim); }
+  .lp-center { text-align: center; margin-top: 8px; }
 
-  /* Instruments */
-  .lp-table-wrap { margin-top: 28px; overflow-x: auto; }
-  .lp-table { width: 100%; min-width: 620px; border-collapse: collapse; font-size: 15px; }
-  .lp-table th, .lp-table td { text-align: left; vertical-align: top; padding: 16px 14px; border-top: 1px solid var(--border-soft); }
-  .lp-table th { border-top: 0; font-size: 12.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-faint); }
-  .lp-table td { color: var(--text-dim); }
-  .lp-table td:first-child { color: var(--text); font-weight: 700; white-space: nowrap; }
-  .lp-table td:last-child { color: var(--text); font-weight: 700; white-space: nowrap; }
+  /* ---------- Live prices and chart ---------- */
+  .lp-prices-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: 28px; margin-top: 44px; align-items: start; }
+  .lp-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .lp-tabs { display: flex; gap: 4px; padding: 10px; border-bottom: 1px solid var(--border-soft); overflow-x: auto; }
+  .lp-tab { padding: 9px 16px; border-radius: 8px; font-size: 14px; font-weight: 700; color: var(--text-dim); white-space: nowrap; }
+  .lp-tab:hover { color: var(--text); }
+  .lp-tab.on { background: var(--surface-2); color: var(--text); }
+  .lp-ptable { width: 100%; border-collapse: collapse; }
+  .lp-ptable td { padding: 13px 16px; border-bottom: 1px solid var(--border-soft); font-size: 14.5px; }
+  .lp-ptable tr:last-child td { border-bottom: 0; }
+  .lp-ptable .s { font-weight: 700; }
+  .lp-ptable .s small { display: block; margin-top: 1px; font-size: 12px; font-weight: 500; color: var(--text-faint); }
+  .lp-ptable .p { font-family: var(--font-mono); text-align: right; }
+  .lp-ptable .c { text-align: right; width: 88px; }
+  .lp-ptable .t { text-align: right; width: 70px; }
+  .lp-ptable .t a { font-size: 13px; font-weight: 700; color: var(--accent-bright); }
+  .lp-chart-box { height: 430px; background: #0a0b0f; padding: 18px; color: var(--text-faint); font-size: 14px; }
 
-  /* Steps */
-  .lp-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 32px; }
-  .lp-step { border-top: 2px solid var(--accent); padding-top: 16px; }
-  .lp-step-n { font-family: var(--font-display); font-size: 14px; font-weight: 800; color: var(--accent-bright); }
-  .lp-step h3 { font-family: var(--font-display); font-size: 17px; font-weight: 700; margin: 6px 0; }
-  .lp-step p { font-size: 14.5px; color: var(--text-dim); }
+  /* ---------- Platform showcase ---------- */
+  .lp-showcase-sec { background: var(--surface); border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); overflow: hidden; }
+  .lp-showcase { display: grid; grid-template-columns: 1fr 2.6fr 1fr; gap: 28px; align-items: end; margin-top: 52px; }
+  .lp-device { background: var(--surface-2); border: 1px solid var(--border); overflow: hidden; }
+  .lp-device img { width: 100%; height: auto; }
+  .lp-device-desktop { border-radius: 12px; }
+  .lp-device-bar { display: flex; gap: 6px; padding: 11px 14px; background: #101218; border-bottom: 1px solid var(--border-soft); }
+  .lp-device-bar i { width: 9px; height: 9px; border-radius: 50%; background: #2c303b; }
+  .lp-device-phone { border-radius: 26px; border: 5px solid #2a2e3a; }
 
-  /* FAQ */
-  .lp-faq { margin-top: 28px; max-width: 780px; }
-  .lp-faq details { border-top: 1px solid var(--border-soft); }
-  .lp-faq details:last-child { border-bottom: 1px solid var(--border-soft); }
-  .lp-faq summary { display: flex; justify-content: space-between; gap: 16px; padding: 18px 0; font-size: 16px; font-weight: 700; list-style: none; }
+  /* ---------- Numbers band (light, for contrast) ---------- */
+  .lp-numbers { background: #f3f4f7; color: #0f1115; padding: 72px 0; }
+  .lp-numbers-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+  .lp-num { text-align: center; padding: 0 8px; }
+  .lp-num b { display: block; font-family: var(--font-display); font-size: clamp(40px, 5.4vw, 64px); line-height: 1.05; font-weight: 800; letter-spacing: -.02em; color: #0f1115; }
+  .lp-num span { display: block; margin-top: 8px; font-size: 15px; font-weight: 600; color: #4b5160; }
+
+  /* ---------- How it works ---------- */
+  .lp-how-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 64px; align-items: center; }
+  .lp-how-grid.no-img { grid-template-columns: 1fr; }
+  .lp-steps { margin-top: 36px; display: flex; flex-direction: column; gap: 4px; }
+  .lp-step { display: grid; grid-template-columns: 52px 1fr; gap: 16px; padding: 18px 0; border-top: 1px solid var(--border-soft); }
+  .lp-step:last-child { border-bottom: 1px solid var(--border-soft); }
+  .lp-step-n { width: 44px; height: 44px; border-radius: 8px; background: var(--accent-soft); color: var(--accent-bright); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 20px; font-weight: 800; }
+  .lp-step h3 { font-family: var(--font-display); font-size: 20px; font-weight: 700; }
+  .lp-step p { margin-top: 3px; font-size: 15.5px; color: var(--text-dim); }
+  .lp-how-img { aspect-ratio: 4 / 5; border-radius: 20px; }
+
+  /* ---------- FAQ ---------- */
+  .lp-faq-sec { background: var(--bg-soft); border-top: 1px solid var(--border-soft); }
+  .lp-faq { margin: 36px auto 0; max-width: 780px; }
+  .lp-faq details { border-top: 1px solid var(--border); }
+  .lp-faq details:last-child { border-bottom: 1px solid var(--border); }
+  .lp-faq summary { display: flex; justify-content: space-between; gap: 16px; padding: 20px 0; font-size: 17px; font-weight: 700; list-style: none; }
   .lp-faq summary::-webkit-details-marker { display: none; }
-  .lp-faq summary::after { content: '+'; color: var(--text-dim); font-weight: 600; }
+  .lp-faq summary::after { content: '+'; color: var(--text-dim); font-weight: 500; font-size: 22px; line-height: 1; }
   .lp-faq details[open] summary::after { content: '-'; }
-  .lp-faq p { padding: 0 0 18px; font-size: 15px; color: var(--text-dim); }
+  .lp-faq p { padding: 0 0 20px; font-size: 15.5px; color: var(--text-dim); }
 
-  /* Closing call to action and footer */
-  .lp-final { padding: 68px 0; text-align: center; border-top: 1px solid var(--border-soft); }
-  .lp-final .lp-sub { margin-left: auto; margin-right: auto; }
-  .lp-final .lp-cta-row { justify-content: center; }
-  .lp-foot { padding: 28px 0 44px; border-top: 1px solid var(--border-soft); font-size: 13.5px; color: var(--text-faint); }
+  /* ---------- Closing call to action ---------- */
+  .lp-cta { position: relative; background: #0d0f14 center / cover no-repeat url('images/cta.jpg'); text-align: center; }
+  .lp-cta::before { content: ''; position: absolute; inset: 0; background: rgba(8, 9, 12, .74); }
+  .lp-cta .lp-wrap { position: relative; padding-top: 104px; padding-bottom: 104px; }
+  .lp-cta .lp-h2 { font-size: clamp(32px, 5vw, 54px); }
+  .lp-cta .lp-sub { margin-left: auto; margin-right: auto; color: #c3c7d1; }
+  .lp-cta .lp-cta-row { justify-content: center; }
+
+  /* ---------- Footer ---------- */
+  .lp-foot { padding: 32px 0 48px; border-top: 1px solid var(--border-soft); font-size: 13.5px; color: var(--text-faint); }
   .lp-foot-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
-  .lp-foot nav { display: flex; flex-wrap: wrap; gap: 18px; }
+  .lp-foot nav { display: flex; flex-wrap: wrap; gap: 20px; }
   .lp-foot nav a:hover { color: var(--text); }
-  .lp-disclaimer { margin-top: 16px; max-width: 720px; }
+  .lp-disclaimer { margin-top: 18px; max-width: 720px; }
 
-  a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+  a:focus-visible, summary:focus-visible, button:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
 
-  @media (max-width: 900px) {
+  @media (prefers-reduced-motion: reduce) {
+    .lp-ticker-track { animation: none; }
+    .lp-btn, .lp-play-card, .lp-mkt { transition: none; }
+  }
+
+  @media (max-width: 960px) {
     .lp-links { display: none; }
-    .lp-hero { padding: 44px 0 40px; }
-    .lp-hero-grid { grid-template-columns: 1fr; gap: 32px; }
-    .lp-stats { grid-template-columns: 1fr 1fr; margin-top: 40px; }
-    .lp-stat:nth-child(2) { border-right: 0; }
-    .lp-stat:nth-child(-n+2) { border-bottom: 1px solid var(--border-soft); }
-    .lp-grid3, .lp-mkts { grid-template-columns: 1fr; }
-    .lp-steps { grid-template-columns: 1fr 1fr; }
-    .lp-section, .lp-final { padding: 48px 0; }
+    .lp-section { padding: 60px 0; }
+    .lp-hero { padding: 40px 0 56px; }
+    .lp-hero-grid { grid-template-columns: 1fr; gap: 40px; }
+    .lp-hero-img { aspect-ratio: 16 / 11; }
+    .lp-float-market { left: 14px; bottom: 14px; width: 250px; }
+    .lp-float-price { right: 14px; top: 14px; min-width: 0; }
+    .lp-play, .lp-mkts { grid-template-columns: 1fr; }
+    .lp-prices-grid { grid-template-columns: 1fr; }
+    .lp-chart-box { height: 340px; }
+    .lp-showcase { grid-template-columns: 1fr 1fr; }
+    .lp-device-desktop { grid-column: 1 / -1; order: -1; }
+    .lp-numbers-grid { grid-template-columns: 1fr 1fr; row-gap: 36px; }
+    .lp-how-grid { grid-template-columns: 1fr; gap: 40px; }
+    .lp-how-img { aspect-ratio: 16 / 11; }
+    .lp-cta .lp-wrap { padding-top: 72px; padding-bottom: 72px; }
   }
   @media (max-width: 520px) {
     .lp-nav-row { gap: 12px; }
-    .lp-steps { grid-template-columns: 1fr; }
     .lp-cta-row .lp-btn { flex: 1; }
+    .lp-float-price { display: none; }
+    .lp-float-market { width: auto; right: 14px; }
   }
 </style>
 </head>
@@ -155,7 +243,7 @@ try {
     </a>
     <nav class="lp-links" aria-label="Sections">
       <a href="#markets">Markets</a>
-      <a href="#products">What you can do</a>
+      <a href="#prices">Live prices</a>
       <a href="#how">How it works</a>
       <a href="#faq">FAQ</a>
     </nav>
@@ -167,110 +255,183 @@ try {
   </div>
 </header>
 
-<main>
-  <section class="lp-hero">
-    <div class="lp-wrap">
-      <div class="lp-hero-grid">
-        <div>
-          <h1 class="lp-h1">Prediction markets, forex and crypto trading, and copy trading in one account</h1>
-          <p class="lp-lead">Bet YES or NO on real-world events, trade 20 forex, commodity and crypto instruments with stop-loss and take-profit, or follow an expert and have their moves copied to your account. All three use the same balance.</p>
-          <div class="lp-cta-row">
-            <a class="lp-btn lp-btn-primary" href="signup.html" data-guest>Create account</a>
-            <a class="lp-btn lp-btn-ghost" href="markets.html">Browse markets</a>
-          </div>
-        </div>
+<div class="lp-ticker" id="lpTickerBar" aria-hidden="true"><div class="lp-ticker-track" id="lpTicker"></div></div>
 
-        <aside class="lp-example" aria-label="Prediction market payout example">
-          <span class="lp-tag">Payout example</span>
-          <p class="lp-example-q">You bet $10 on YES while the market says 40%</p>
-          <div class="lp-row"><span>Stake</span><b>$10.00</b></div>
-          <div class="lp-row"><span>Probability when you bet</span><b>40%</b></div>
-          <div class="lp-row"><span>Payout before fee</span><b>$25.00</b></div>
-          <div class="lp-row"><span>Fee (2% of payout)</span><b>-$0.50</b></div>
-          <div class="lp-row total"><span>You receive if YES is right</span><b>$24.50</b></div>
-          <p class="lp-note">If NO wins, the $10 stake is lost.</p>
-        </aside>
+<main>
+  <!-- HERO -->
+  <section class="lp-hero">
+    <div class="lp-wrap lp-hero-grid">
+      <div>
+        <p class="lp-eyebrow">One account. Three ways to play.</p>
+        <h1 class="lp-h1">Bet on what happens next.<br><span>Trade what moves.</span></h1>
+        <p class="lp-lead">Prediction markets, forex, commodities, crypto and copy trading, all from one balance.</p>
+        <div class="lp-cta-row">
+          <a class="lp-btn lp-btn-primary" href="signup.html" data-guest>Create free account</a>
+          <a class="lp-btn lp-btn-ghost" href="markets.html">Browse live markets</a>
+        </div>
+        <ul class="lp-points">
+          <li><svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Free to register</li>
+          <li><svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Start from $10</li>
+          <li><svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Up to 1:50 leverage</li>
+        </ul>
       </div>
 
-      <div class="lp-stats">
-        <div class="lp-stat"><b>3</b><span>ways to play, one shared balance</span></div>
-        <div class="lp-stat"><b>20</b><span>forex, commodity and crypto instruments</span></div>
-        <div class="lp-stat"><b>$10</b><span>minimum available balance to bet, trade or copy</span></div>
-        <div class="lp-stat"><b>2%</b><span>fee on prediction market payouts</span></div>
+      <div class="lp-hero-media">
+        <figure class="lp-media lp-hero-img">
+          <img src="images/hero.jpg" width="1200" height="1500" fetchpriority="high" alt="Trader watching live market charts on several screens" onerror="this.remove()">
+        </figure>
+        <a class="lp-float lp-float-market" id="lpHeroMarket" href="markets.html" hidden></a>
+        <div class="lp-float lp-float-price" id="lpHeroPrice" hidden></div>
       </div>
     </div>
   </section>
 
-  <section class="lp-section" id="markets">
+  <!-- THREE WAYS TO PLAY -->
+  <section class="lp-section" id="play">
     <div class="lp-wrap">
-      <h2 class="lp-h2">Open markets right now</h2>
-      <p class="lp-sub">The biggest live markets by volume. Open one to see the full question and the current probability.</p>
+      <div class="lp-head">
+        <p class="lp-eyebrow">Three ways to play</p>
+        <h2 class="lp-h2">Pick how you want to win</h2>
+        <p class="lp-sub">Bets, trades and copied activity all use the same balance.</p>
+      </div>
+      <div class="lp-play">
+        <article class="lp-play-card">
+          <figure class="lp-media"><img src="images/play-predict.jpg" width="800" height="500" loading="lazy" alt="Crowd watching a big match at night" onerror="this.remove()"></figure>
+          <div class="lp-play-body">
+            <span class="tag">Predict</span>
+            <h3>Call the outcome</h3>
+            <p>Back YES or NO on elections, matches, markets and more. The price is the probability, and it keeps moving until the result is in.</p>
+            <a class="lp-link" href="markets.html">Browse markets</a>
+          </div>
+        </article>
+        <article class="lp-play-card">
+          <figure class="lp-media"><img src="images/play-trade.jpg" width="800" height="500" loading="lazy" alt="Candlestick chart on a dark screen" onerror="this.remove()"></figure>
+          <div class="lp-play-body">
+            <span class="tag">Trade</span>
+            <h3>Trade the move</h3>
+            <p>Go long or short on 20 forex, commodity and crypto instruments, with stop-loss, take-profit and up to 1:50 leverage.</p>
+            <a class="lp-link" href="trade.html">Open the trading page</a>
+          </div>
+        </article>
+        <article class="lp-play-card">
+          <figure class="lp-media"><img src="images/play-copy.jpg" width="800" height="500" loading="lazy" alt="Two people reviewing a portfolio together on a laptop" onerror="this.remove()"></figure>
+          <div class="lp-play-body">
+            <span class="tag">Copy</span>
+            <h3>Follow the best</h3>
+            <p>Pick an expert or a trader and their moves land in your account automatically. Stop whenever you like.</p>
+            <a class="lp-link" href="copytrade.html">Meet the experts</a>
+          </div>
+        </article>
+      </div>
+      <div class="lp-payout">
+        <span>A $10 YES bet at 40% pays <b>$24.50</b> after the 2% fee.</span>
+        <a href="#faq">How payouts work</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIVE MARKETS -->
+  <section class="lp-section lp-markets" id="markets">
+    <div class="lp-wrap">
+      <div class="lp-head">
+        <p class="lp-eyebrow">Live markets</p>
+        <h2 class="lp-h2">What people are betting on right now</h2>
+        <p class="lp-sub">Real questions with live probabilities. Open one to see the full detail.</p>
+      </div>
       <div class="lp-mkts" id="lpMarkets"></div>
       <p class="lp-status" id="lpStatus">Loading markets...</p>
-      <a class="lp-more" href="markets.html">See all markets</a>
+      <p class="lp-center"><a class="lp-btn lp-btn-ghost" href="markets.html">See all markets</a></p>
     </div>
   </section>
 
-  <section class="lp-section" id="products">
+  <!-- LIVE PRICES + CHART -->
+  <section class="lp-section" id="prices">
     <div class="lp-wrap">
-      <h2 class="lp-h2">Three ways to use your balance</h2>
-      <p class="lp-sub">Deposit once. Bets, trades and copied activity all draw from, and return to, the same balance.</p>
-      <div class="lp-grid3">
-        <article class="lp-card">
-          <div class="lp-icon"><svg viewBox="0 0 24 24" fill="none"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><polyline points="16 7 22 7 22 13" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-          <h3>Prediction markets</h3>
-          <p>Pick YES or NO on questions across politics, sports, esports, finance, geopolitics, tech, culture and the economy. The price of a side is its probability, and it keeps moving until the market resolves.</p>
-          <a class="lp-more" href="markets.html">Browse markets</a>
-        </article>
-        <article class="lp-card">
-          <div class="lp-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M6 3v3M6 16v4M4.5 6h3v10h-3zM18 3v4M18 18v3M16.5 7h3v11h-3zM12 6v2M12 17v3M10.5 8h3v9h-3z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-          <h3>Trading</h3>
-          <p>Open BUY or SELL trades on 8 forex pairs, 5 commodities and 7 cryptocurrencies. Choose your lot size and set a stop-loss and take-profit. Margin and leverage limits keep each trade within your balance.</p>
-          <a class="lp-more" href="trade.html">Open the trading page</a>
-        </article>
-        <article class="lp-card">
-          <div class="lp-icon"><svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3.5" stroke="currentColor" stroke-width="1.7"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.4c2 .8 3 2.7 3 5.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
-          <h3>Copy trading</h3>
-          <p>Follow an expert predictor or a forex and commodity trader and their activity is placed on your account automatically. Copy-trade sizes are based on your balance when you start following. You can stop at any time.</p>
-          <a class="lp-more" href="copytrade.html">See experts and traders</a>
-        </article>
+      <div class="lp-head">
+        <p class="lp-eyebrow">Live prices</p>
+        <h2 class="lp-h2">20 instruments, one click from a trade</h2>
+        <p class="lp-sub">Forex, commodities and crypto. Prices update live, and crypto trades 24/7.</p>
+      </div>
+      <div class="lp-prices-grid">
+        <div class="lp-panel">
+          <div class="lp-tabs" id="lpPriceTabs" role="tablist">
+            <button class="lp-tab on" data-cls="forex" role="tab">Forex</button>
+            <button class="lp-tab" data-cls="commodities" role="tab">Commodities</button>
+            <button class="lp-tab" data-cls="crypto" role="tab">Crypto</button>
+          </div>
+          <table class="lp-ptable"><tbody id="lpPrices"><tr><td style="color:var(--text-faint)">Loading prices...</td></tr></tbody></table>
+        </div>
+        <div class="lp-panel">
+          <div class="lp-tabs" id="lpChartTabs" role="tablist">
+            <button class="lp-tab on" data-sym="FX:EURUSD" role="tab">EUR/USD</button>
+            <button class="lp-tab" data-sym="TVC:GOLD" role="tab">Gold</button>
+            <button class="lp-tab" data-sym="TVC:USOIL" role="tab">Crude oil</button>
+            <button class="lp-tab" data-sym="BINANCE:BTCUSDT" role="tab">BTC/USD</button>
+            <button class="lp-tab" data-sym="BINANCE:ETHUSDT" role="tab">ETH/USD</button>
+          </div>
+          <div class="lp-chart-box" id="lpChart">Chart loading...</div>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="lp-section" id="instruments">
+  <!-- PLATFORM SHOWCASE -->
+  <section class="lp-section lp-showcase-sec">
     <div class="lp-wrap">
-      <h2 class="lp-h2">What you can trade</h2>
-      <p class="lp-sub">Leverage is capped by asset class. Forex and commodity markets close at the weekend, and crypto trades 24/7.</p>
-      <div class="lp-table-wrap">
-        <table class="lp-table">
-          <thead><tr><th>Asset class</th><th>Instruments</th><th>Maximum leverage</th></tr></thead>
-          <tbody>
-            <tr><td>Forex</td><td>EUR/USD, GBP/USD, USD/JPY, USD/CHF, AUD/USD, USD/CAD, EUR/GBP, NZD/USD</td><td>1:50</td></tr>
-            <tr><td>Gold</td><td>XAU/USD</td><td>1:20</td></tr>
-            <tr><td>Other commodities</td><td>Silver, crude oil (WTI), natural gas, platinum</td><td>1:10</td></tr>
-            <tr><td>Crypto</td><td>Bitcoin, Ethereum, BNB, Solana, XRP, Cardano, Avalanche</td><td>1:5</td></tr>
-          </tbody>
-        </table>
+      <div class="lp-head center">
+        <p class="lp-eyebrow">The platform</p>
+        <h2 class="lp-h2">Everything in one place</h2>
+        <p class="lp-sub">Markets, trades, copy trading and your portfolio, on desktop or phone.</p>
+      </div>
+      <div class="lp-showcase">
+        <figure class="lp-device lp-device-phone"><img src="images/app-portfolio.png" width="390" height="844" loading="lazy" alt="Portfolio screen on a phone" onerror="this.closest('figure').style.display='none'"></figure>
+        <figure class="lp-device lp-device-desktop">
+          <div class="lp-device-bar"><i></i><i></i><i></i></div>
+          <img src="images/app-markets.png" width="1440" height="900" loading="lazy" alt="Markets page on desktop" onerror="this.closest('figure').style.display='none'">
+        </figure>
+        <figure class="lp-device lp-device-phone"><img src="images/app-trade.png" width="390" height="844" loading="lazy" alt="Trading screen on a phone" onerror="this.closest('figure').style.display='none'"></figure>
       </div>
     </div>
   </section>
 
+  <!-- NUMBERS (light band) -->
+  <section class="lp-numbers" aria-label="Key numbers">
+    <div class="lp-wrap">
+      <div class="lp-numbers-grid">
+        <div class="lp-num"><b>20</b><span>Instruments to trade</span></div>
+        <div class="lp-num"><b>1:50</b><span>Maximum forex leverage</span></div>
+        <div class="lp-num"><b>$10</b><span>Minimum to get started</span></div>
+        <div class="lp-num"><b>24/7</b><span>Crypto trading</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
   <section class="lp-section" id="how">
     <div class="lp-wrap">
-      <h2 class="lp-h2">How it works</h2>
-      <div class="lp-steps">
-        <div class="lp-step"><span class="lp-step-n">1</span><h3>Create an account</h3><p>Sign up with your email address. You get an account ID straight away.</p></div>
-        <div class="lp-step"><span class="lp-step-n">2</span><h3>Verify your identity</h3><p>Upload an ID document. Verification is required before you can deposit or withdraw.</p></div>
-        <div class="lp-step"><span class="lp-step-n">3</span><h3>Fund your balance</h3><p>Deposit with crypto from your Portfolio page, or ask support for bank transfer details.</p></div>
-        <div class="lp-step"><span class="lp-step-n">4</span><h3>Choose how to play</h3><p>Bet on a market, open a trade or follow a trader. Your Portfolio shows every position.</p></div>
+      <div class="lp-how-grid" id="lpHowGrid">
+        <div>
+          <p class="lp-eyebrow">Get started</p>
+          <h2 class="lp-h2">Live in four steps</h2>
+          <div class="lp-steps">
+            <div class="lp-step"><span class="lp-step-n">1</span><div><h3>Create your account</h3><p>Sign up with your email and get your account ID straight away.</p></div></div>
+            <div class="lp-step"><span class="lp-step-n">2</span><div><h3>Verify your identity</h3><p>Upload an ID document. It is required before you can deposit or withdraw.</p></div></div>
+            <div class="lp-step"><span class="lp-step-n">3</span><div><h3>Fund your balance</h3><p>Deposit with crypto from your Portfolio page, or ask support for bank transfer details.</p></div></div>
+            <div class="lp-step"><span class="lp-step-n">4</span><div><h3>Choose how to play</h3><p>Bet on a market, open a trade or follow a trader. Your Portfolio tracks every position.</p></div></div>
+          </div>
+        </div>
+        <figure class="lp-media lp-how-img" id="lpHowImg"><img src="images/how.jpg" width="900" height="1125" loading="lazy" alt="Person checking a trading app on their phone" onerror="document.getElementById('lpHowGrid').classList.add('no-img');document.getElementById('lpHowImg').style.display='none'"></figure>
       </div>
     </div>
   </section>
 
-  <section class="lp-section" id="faq">
+  <!-- FAQ -->
+  <section class="lp-section lp-faq-sec" id="faq">
     <div class="lp-wrap">
-      <h2 class="lp-h2">Questions</h2>
+      <div class="lp-head center">
+        <p class="lp-eyebrow">FAQ</p>
+        <h2 class="lp-h2">Questions, answered</h2>
+      </div>
       <div class="lp-faq">
         <details>
           <summary>What is VectorProb?</summary>
@@ -300,13 +461,14 @@ try {
     </div>
   </section>
 
-  <section class="lp-final">
+  <!-- CLOSING CALL TO ACTION -->
+  <section class="lp-cta">
     <div class="lp-wrap">
-      <h2 class="lp-h2">Start with the markets</h2>
-      <p class="lp-sub">Browse every open market without an account, then create one when you want to place a bet.</p>
+      <h2 class="lp-h2">Your first market is waiting.</h2>
+      <p class="lp-sub">Create a free account and place your first prediction or trade today.</p>
       <div class="lp-cta-row">
-        <a class="lp-btn lp-btn-primary" href="signup.html" data-guest>Create account</a>
-        <a class="lp-btn lp-btn-ghost" href="markets.html">Browse markets</a>
+        <a class="lp-btn lp-btn-primary" href="signup.html" data-guest>Create free account</a>
+        <a class="lp-btn lp-btn-ghost" href="markets.html">Browse live markets</a>
       </div>
     </div>
   </section>
@@ -333,8 +495,11 @@ try {
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="probability.js"></script>
+<script src="trading-engine.js"></script>
+<script async src="https://s3.tradingview.com/tv.js"></script>
 <script>
 (function () {
+  function $(id) { return document.getElementById(id); }
   function esc(s) {
     return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; });
   }
@@ -346,51 +511,183 @@ try {
     return '$' + v.toFixed(0);
   }
   function label(c) { c = c || 'general'; return c.charAt(0).toUpperCase() + c.slice(1); }
+  function clip(s, n) { s = String(s || ''); return s.length > n ? s.slice(0, n - 1).trim() + '...' : s; }
 
-  function card(m) {
-    var outcomes = m.outcomes || [];
-    var binary = m.marketType === 'binary' || outcomes.length <= 2;
-    var body;
-    if (binary) {
-      var yes = Math.round(m.currentProbability || m.startingProbability || 50);
-      body = '<div class="lp-bar"><i style="width:' + yes + '%"></i></div>' +
-             '<div class="lp-mkt-nums"><span class="y">Yes ' + yes + '%</span><span class="n">No ' + (100 - yes) + '%</span></div>';
+  /* ---------------- Prediction markets ---------------- */
+  var topMarkets = [];
+
+  function yesOf(m) { return Math.round(m.currentProbability || m.startingProbability || 50); }
+  function isBinary(m) { return m.marketType === 'binary' || (m.outcomes || []).length <= 2; }
+
+  function marketCard(m) {
+    var outcomes = m.outcomes || [], body;
+    if (isBinary(m)) {
+      var yes = yesOf(m);
+      body = '<div><div class="lp-bar"><i style="width:' + yes + '%"></i></div>' +
+             '<div class="lp-nums"><span class="y">Yes ' + yes + '%</span><span class="n">No ' + (100 - yes) + '%</span></div></div>';
     } else {
       var top = outcomes.slice().sort(function (a, b) { return (b.probability || 0) - (a.probability || 0); })[0] || {};
-      body = '<div class="lp-mkt-nums"><span class="y">' + esc(top.name || 'Leading outcome') + ' ' + (top.probability || 0) + '%</span>' +
+      body = '<div class="lp-nums"><span class="y">' + esc(top.name || 'Leading outcome') + ' ' + (top.probability || 0) + '%</span>' +
              '<span>' + outcomes.length + ' outcomes</span></div>';
     }
     return '<a class="lp-mkt" href="market-detail.html?id=' + encodeURIComponent(m.id) + '">' +
              '<span class="lp-mkt-cat">' + esc(label(m.category)) + '</span>' +
              '<span class="lp-mkt-q">' + esc(m.question || 'Untitled market') + '</span>' +
-             body +
-             '<span class="lp-mkt-vol">' + vol(m.totalVolume) + ' volume</span>' +
-           '</a>';
+             body + '<span class="lp-mkt-vol">' + vol(m.totalVolume) + ' volume</span></a>';
   }
 
   function showStatus(text) {
-    var s = document.getElementById('lpStatus');
+    var s = $('lpStatus');
     s.textContent = text; s.style.display = text ? '' : 'none';
   }
 
-  Promise.all([
-    db.collection('markets').where('status', '==', 'active').get(),
-    vpWindow.getUserCreated()
-  ]).then(function (r) {
-    var list = r[0].docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })
-      .filter(function (m) { return vpWindow.isVisible(r[1], m); });
-    vpProb.apply(list);
-    list.sort(function (a, b) { return (b.totalVolume || 0) - (a.totalVolume || 0); });
-    list = list.slice(0, 6);
-    if (!list.length) { showStatus('No markets are open right now.'); return; }
-    document.getElementById('lpMarkets').innerHTML = list.map(card).join('');
-    showStatus('');
-  }).catch(function (e) {
-    console.warn('Markets load failed:', e);
-    showStatus('Markets could not be loaded right now. Open the markets page to try again.');
+  function paintHeroMarket() {
+    var m = topMarkets[0], el = $('lpHeroMarket');
+    if (!m || !el) return;
+    var body = isBinary(m)
+      ? '<div class="lp-bar"><i style="width:' + yesOf(m) + '%"></i></div><div class="lp-nums"><span class="y">Yes ' + yesOf(m) + '%</span><span class="n">No ' + (100 - yesOf(m)) + '%</span></div>'
+      : '';
+    el.href = 'market-detail.html?id=' + encodeURIComponent(m.id);
+    el.innerHTML = '<span class="tag">Live market</span><div class="q">' + esc(m.question || '') + '</div>' + body;
+    el.hidden = false;
+  }
+
+  function loadMarkets() {
+    return Promise.all([
+      db.collection('markets').where('status', '==', 'active').get(),
+      vpWindow.getUserCreated()
+    ]).then(function (r) {
+      var list = r[0].docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })
+        .filter(function (m) { return vpWindow.isVisible(r[1], m); });
+      vpProb.apply(list);
+      list.sort(function (a, b) { return (b.totalVolume || 0) - (a.totalVolume || 0); });
+      topMarkets = list.slice(0, 6);
+      if (!topMarkets.length) { showStatus('No markets are open right now.'); return; }
+      $('lpMarkets').innerHTML = topMarkets.map(marketCard).join('');
+      showStatus('');
+      paintHeroMarket();
+      buildTicker();
+    }).catch(function (e) {
+      console.warn('Markets load failed:', e);
+      showStatus('Markets could not be loaded right now. Open the markets page to try again.');
+    });
+  }
+
+  /* ---------------- Live prices ---------------- */
+  var prices = {}, base = {}, pricesReady = false, activeCls = 'forex';
+  var TICK_SYMS = ['EUR/USD', 'GBP/USD', 'USD/JPY', 'XAU/USD', 'WTI/USD', 'BTC/USD', 'ETH/USD', 'SOL/USD'];
+
+  function pct(sym) {
+    var b = base[sym], p = prices[sym];
+    return (b && p) ? (p - b) / b * 100 : 0;
+  }
+  function pctHTML(sym) {
+    var c = pct(sym);
+    return '<span class="' + (c >= 0 ? 'up' : 'dn') + '" data-c="' + esc(sym) + '">' + (c >= 0 ? '+' : '-') + Math.abs(c).toFixed(2) + '%</span>';
+  }
+
+  function tickItems() {
+    var out = '';
+    if (pricesReady) {
+      TICK_SYMS.forEach(function (s) {
+        out += '<span class="lp-tick"><b>' + s + '</b><span class="p" data-p="' + s + '">' + fmtPrice(prices[s], s) + '</span>' + pctHTML(s) + '</span>';
+      });
+    }
+    topMarkets.slice(0, 4).forEach(function (m) {
+      if (!isBinary(m)) return;
+      out += '<span class="lp-tick"><span class="tag">Market</span><b>' + esc(clip(m.question, 44)) + '</b><span class="up">Yes ' + yesOf(m) + '%</span></span>';
+    });
+    return out;
+  }
+
+  function buildTicker() {
+    var html = tickItems();
+    if (!html) return;
+    $('lpTicker').innerHTML = html + html;      // doubled so the loop is seamless
+    $('lpTickerBar').classList.add('on');
+  }
+
+  function renderTable() {
+    var tb = $('lpPrices');
+    if (!pricesReady) return;
+    var list = INSTRUMENTS[activeCls] || [];
+    tb.innerHTML = list.map(function (i) {
+      return '<tr><td class="s">' + i.symbol + '<small>' + esc(i.name) + '</small></td>' +
+             '<td class="p" data-p="' + i.symbol + '">' + fmtPrice(prices[i.symbol], i.symbol) + '</td>' +
+             '<td class="c">' + pctHTML(i.symbol) + '</td>' +
+             '<td class="t"><a href="trade.html">Trade</a></td></tr>';
+    }).join('');
+  }
+
+  function paintHeroPrice() {
+    var el = $('lpHeroPrice');
+    if (!pricesReady || !el) return;
+    el.innerHTML = '<span class="tag">Live price</span><div class="sym">BTC/USD</div><div class="big" data-p="BTC/USD">' +
+                   fmtPrice(prices['BTC/USD'], 'BTC/USD') + '</div>' + pctHTML('BTC/USD');
+    el.hidden = false;
+  }
+
+  function onTick() {
+    // update values in place so the ticker keeps scrolling smoothly
+    var ps = document.querySelectorAll('[data-p]');
+    for (var i = 0; i < ps.length; i++) ps[i].textContent = fmtPrice(prices[ps[i].getAttribute('data-p')], ps[i].getAttribute('data-p'));
+    var cs = document.querySelectorAll('[data-c]');
+    for (var j = 0; j < cs.length; j++) {
+      var s = cs[j].getAttribute('data-c'), c = pct(s);
+      cs[j].className = c >= 0 ? 'up' : 'dn';
+      cs[j].textContent = (c >= 0 ? '+' : '-') + Math.abs(c).toFixed(2) + '%';
+    }
+  }
+
+  function loadPrices() {
+    if (typeof loadLivePrices !== 'function' || typeof INSTRUMENTS === 'undefined') return;
+    loadLivePrices(prices).then(function () {
+      Object.keys(prices).forEach(function (k) { base[k] = prices[k]; });
+      pricesReady = true;
+      buildTicker(); renderTable(); paintHeroPrice();
+      startPriceRefresh(prices, onTick);
+    }).catch(function (e) { console.warn('Price load failed:', e); });
+  }
+
+  $('lpPriceTabs').addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('[data-cls]') : null;
+    if (!b) return;
+    activeCls = b.getAttribute('data-cls');
+    var tabs = $('lpPriceTabs').querySelectorAll('.lp-tab');
+    for (var i = 0; i < tabs.length; i++) tabs[i].classList.toggle('on', tabs[i] === b);
+    renderTable();
   });
 
-  // Signed-in visitors (who opened this page with ?stay=1) get an "Open markets" button instead of sign-up buttons
+  /* ---------------- Chart ---------------- */
+  var chartSym = 'FX:EURUSD', chartTries = 0;
+  function mountChart() {
+    var box = $('lpChart');
+    if (!window.TradingView) {
+      if (++chartTries < 20) { setTimeout(mountChart, 500); } else { box.textContent = 'Chart unavailable right now.'; }
+      return;
+    }
+    box.innerHTML = '';
+    new window.TradingView.widget({
+      container_id: 'lpChart', autosize: true, symbol: chartSym, interval: '60', timezone: 'Etc/UTC',
+      theme: 'dark', style: '1', locale: 'en', toolbar_bg: '#0a0b0f',
+      enable_publishing: false, hide_side_toolbar: true, allow_symbol_change: false, save_image: false
+    });
+  }
+  $('lpChartTabs').addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('[data-sym]') : null;
+    if (!b) return;
+    chartSym = b.getAttribute('data-sym');
+    var tabs = $('lpChartTabs').querySelectorAll('.lp-tab');
+    for (var i = 0; i < tabs.length; i++) tabs[i].classList.toggle('on', tabs[i] === b);
+    mountChart();
+  });
+
+  /* ---------------- Go ---------------- */
+  loadMarkets();
+  loadPrices();
+  window.addEventListener('load', mountChart);
+
+  // Signed-in visitors (who opened this page with ?stay=1) get "Open markets" instead of sign-up buttons
   auth.onAuthStateChanged(function (u) {
     if (!u || u.isAnonymous) return;
     document.querySelectorAll('[data-guest]').forEach(function (el) { el.style.display = 'none'; });
