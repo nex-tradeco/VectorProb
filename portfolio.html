@@ -849,7 +849,6 @@ async function loadTradeHistory() {
 // ── Deposit & Withdraw (NexTrade approach) ────────────────────────────────
 // Wallets stored at wallets/addresses (single doc, coin keys)
 // All transactions written to 'transactions' collection (type: deposit/withdrawal)
-// Deposits are open to everyone. KYC (identity verification) is only required to withdraw.
 
 var walletData   = {};   // loaded from wallets/addresses
 var selectedCoin = 'BTC';
@@ -879,19 +878,6 @@ async function loadWalletAddresses() {
       });
     }
   } catch(e) { console.warn('Could not load wallet addresses:', e); }
-}
-
-// ── KYC block message ───────────────────────────────────────────────────────
-function showKycBlock(container) {
-  var existing = document.getElementById('kycBlockMsg');
-  if (existing) { existing.style.display = 'block'; return; }
-  var msg = document.createElement('div');
-  msg.id = 'kycBlockMsg';
-  msg.style.cssText = 'background:rgba(242,73,107,.08);border:1px solid rgba(242,73,107,.25);border-radius:12px;padding:14px 16px;margin-bottom:14px;';
-  msg.innerHTML = '<div style="font-weight:700;color:#f2496b;margin-bottom:6px;">Identity Verification Required</div>'
-    + '<p style="font-size:13px;color:var(--text-dim);line-height:1.6;margin:0 0 10px;">You must complete and pass identity verification before making a withdrawal.</p>'
-    + '<a href="kyc.html" style="display:inline-flex;align-items:center;height:36px;padding:0 16px;border-radius:8px;background:var(--accent,#7c5cff);color:#fff;font-size:13px;font-weight:700;text-decoration:none;">Verify Identity</a>';
-  if (container) container.insertBefore(msg, container.firstChild);
 }
 
 function hideKycBlock() {
@@ -1078,7 +1064,7 @@ function closeWithdrawModal() {
 async function submitWithdraw() {
   if (!(await ensureKycStatus())) {
     closeWithdrawModal();
-    pToast('Identity verification is required to withdraw. Use Verify Identity in the menu.', 'err');
+    pToast('Withdrawal unavailable. Please contact support.', 'err');
     return;
   }
   var amount  = parseFloat(document.getElementById('wdAmount').value);
