@@ -108,12 +108,12 @@ html { overflow-x: hidden; }
 }
 
 .brand{ display: flex; align-items: center; gap: 9px; }
-.brand-mark{ width: 30px; height: 30px; color: var(--accent); }
-.brand-name{ min-width: 0; 
-  font-family: var(--font-display); font-weight: 700; font-size: 18px;
-  letter-spacing: -.01em;
+.brand-logo{ height: 30px; width: auto; display: block; }
+.brand-logo-mark{ height: 30px; width: auto; display: none; }
+@media (max-width: 380px){
+  .brand-logo{ display: none; }
+  .brand-logo-mark{ display: block; }
 }
-.brand-name span{ color: var(--accent-bright); }
 
 .header-actions{ display: flex; align-items: center; gap: 6px; }
 .icon-btn{
@@ -568,7 +568,6 @@ html { overflow-x: hidden; }
   }
   /* Brand shrinks gracefully */
   .brand { min-width: 0; flex-shrink: 1; overflow: hidden; }
-  .brand-name { font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   /* Category nav scrolls horizontally without pushing layout */
   .category-nav { flex: 1; min-width: 0; }
   /* Header row never overflows */
